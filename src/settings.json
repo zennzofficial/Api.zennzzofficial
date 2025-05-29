@@ -74,7 +74,7 @@
       "items": [
         {
           "name": "YTMP3 Downloader",
-          "desc": "Download audio YouTube sebagai MP3",
+          "desc": "Download info & link YouTube MP3 (via Yogik.id)",
           "path": "/downloader/ytmp3?url=",
           "status": "ready",
           "params": {
@@ -83,11 +83,25 @@
         },
         {
           "name": "YTMP4 Downloader",
-          "desc": "Download video YouTube sebagai MP4",
+          "desc": "Download info & link YouTube MP4 (via Yogik.id)",
           "path": "/downloader/ytmp4?url=",
           "status": "ready",
           "params": {
             "url": "URL video YouTube"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Maker",
+      "items": [
+        {
+          "name": "Brat Image",
+          "desc": "Generate gambar anomani",
+          "path": "/maker/brat?text=",
+          "status": "ready",
+          "params": {
+            "text": "Teks yang ingin dibuat menjadi gambar brat"
           }
         }
       ]
