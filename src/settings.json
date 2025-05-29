@@ -88,7 +88,9 @@
           "status": "ready",
           "params": {
             "url": "URL video YouTube"
-          }, {
+          }
+        },
+        {
           "name": "TikTok Downloader",
           "desc": "Download video foto TikTok",
           "path": "/downloader/tiktok?url=",
