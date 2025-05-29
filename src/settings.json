@@ -78,7 +78,7 @@
         },
         {
           "name": "TikTok Search",
-          "desc": "Mencari video atau pengguna di TikTok (via FlowFalcon).",
+          "desc": "Mencari video di tiktok.",
           "path": "/search/tiktok?q=",
           "status": "ready",
           "params": {
