@@ -29,7 +29,7 @@
           "path": "/ai/deepseek",
           "method": "POST",
           "status": "ready",
-          "params": {
+          "params_body": { 
             "prompt": "Teks prompt atau pertanyaan untuk AI (wajib)",
             "chat_session_id": "ID sesi chat untuk melanjutkan percakapan (opsional)",
             "parent_message_id": "ID pesan sebelumnya dalam sesi chat (opsional)",
