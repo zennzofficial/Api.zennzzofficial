@@ -24,36 +24,21 @@
           }
         },
         {
-
           "name": "DeepSeek AI Chat",
-
           "desc": "Berinteraksi dengan DeepSeek AI. Mendukung chat lanjutan dan upload file referensi.",
-
           "path": "/ai/deepseek",
-
-          "method": "POST", 
-
+          "method": "POST",
           "status": "ready",
-
-          "params_body": { 
-
-            "prompt": "Teks prompt atau pertanyaan untuk AI (wajib).",
-
-            "chat_session_id": "ID sesi chat untuk melanjutkan percakapan (opsional).",
-
-            "parent_message_id": "ID pesan sebelumnya dalam sesi chat (opsional).",
-
-            "ref_file_urls": "Array berisi URL file yang ingin diupload sebagai referensi (opsional).",
-
-            "thinking_enabled": "Aktifkan mode 'thinking' (opsional, boolean, default false).",
-
-            "search_enabled": "Aktifkan mode pencarian web (opsional, boolean, default false)."
-
+          "params": {
+            "prompt": "Teks prompt atau pertanyaan untuk AI (wajib)",
+            "chat_session_id": "ID sesi chat untuk melanjutkan percakapan (opsional)",
+            "parent_message_id": "ID pesan sebelumnya dalam sesi chat (opsional)",
+            "ref_file_urls": "Array URL file referensi (opsional)",
+            "thinking_enabled": "Aktifkan mode 'thinking' (boolean, default false)",
+            "search_enabled": "Aktifkan mode pencarian web (boolean, default false)"
           },
-
-          "response_note": "Mengembalikan pesan dari AI, ID sesi chat, dan informasi terkait lainnya."
-
-        }, 
+          "response_note": "Mengembalikan pesan dari AI, ID sesi chat, dan informasi terkait lainnya"
+        },
         {
           "name": "HydroMind",
           "desc": "See the list of supported AI models here: https://mind.hydrooo.web.id",
@@ -148,7 +133,7 @@
           "params": {
             "url": "URL halaman MediaFire"
           }
-        }, 
+        },
         {
           "name": "All-in-One Downloader",
           "desc": "Mengunduh video dari berbagai sumber.",
