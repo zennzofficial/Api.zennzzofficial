@@ -33,6 +33,16 @@
           }
         }, 
         {
+          "name": "Claude AI One",
+          "desc": "Berinteraksi dengan Claude AI.",
+          "path": "/ai/claudeone?prompt=",
+          "status": "ready",
+          "params": {
+            "prompt": "Prompt atau pesan untuk Claude AI"
+          },
+          "response_note": "Mengembalikan respons AI sebagai teks biasa (text/plain)."
+        }, 
+        {
           "name": "HydroMind",
           "desc": "See the list of supported AI models here: https://mind.hydrooo.web.id",
           "path": "/ai/hydromind?text=&model=",
