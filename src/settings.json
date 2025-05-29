@@ -7,7 +7,7 @@
     "status": "Online!"
   },
   "apiSettings": {
-    "creator": "ZenzXD", 
+    "creator": "ZenzXD",
     "apikey": ["zenzapis"]
   },
   "categories": [
@@ -23,14 +23,14 @@
             "text": "Text for luminai to respond to"
           }
         },
-       {
+        {
           "name": "HydroMind",
           "desc": "See the list of supported AI models here: https://mind.hydrooo.web.id",
           "path": "/ai/hydromind?text=&model=",
           "status": "ready",
           "params": {
             "text": "Teks atau perintah untuk chat AI",
-            "model":"1See the list of supported AI models here: https://mind.hydrooo.web.id"
+            "model": "1See the list of supported AI models here: https://mind.hydrooo.web.id"
           }
         }
       ]
@@ -57,8 +57,40 @@
           "params": {
             "q": "Search query"
           }
+        },
+        {
+          "name": "GSMArena Search",
+          "desc": "Mencari spesifikasi HP di GSMArena.",
+          "path": "/search/gsmarena?phone=",
+          "status": "ready",
+          "params": {
+            "phone": "Nama HP yang ingin dicari (contoh: Samsung S23)"
+          }
         }
       ]
-    }               
+    },
+    {
+      "name": "Downloader",
+      "items": [
+        {
+          "name": "YTMP3 Downloader",
+          "desc": "Download audio YouTube sebagai MP3",
+          "path": "/downloader/ytmp3?url=",
+          "status": "ready",
+          "params": {
+            "url": "URL video YouTube"
+          }
+        },
+        {
+          "name": "YTMP4 Downloader",
+          "desc": "Download video YouTube sebagai MP4",
+          "path": "/downloader/ytmp4?url=",
+          "status": "ready",
+          "params": {
+            "url": "URL video YouTube"
+          }
+        }
+      ]
+    }
   ]
 }
