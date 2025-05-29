@@ -153,16 +153,6 @@
             "emoji1": "Emoji pertama (contoh: 😀)",
             "emoji2": "Emoji kedua (contoh: 😭)"
           }
-        },
-        {
-          "name": "Brat anomani",
-          "desc": "Generate text brat anomani.",
-          "path": "/maker/brat?text=",
-          "status": "ready",
-          "params": {
-            "text": "Teks yang ingin dibuat brat anomani."
-            
-          }
         }
       ]
     },
