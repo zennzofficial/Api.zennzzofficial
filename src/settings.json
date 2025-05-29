@@ -35,7 +35,7 @@
         {
           "name": "Claude AI One",
           "desc": "Berinteraksi dengan Claude AI.",
-          "path": "/ai/claude-yogik?text=",
+          "path": "/ai/claude?text=",
           "status": "ready",
           "params": {
             "text": "Prompt atau pertanyaan untuk Claude AI"
