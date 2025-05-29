@@ -118,6 +118,15 @@
           }
         }, 
         {
+          "name": "Instagram Downloader",
+          "desc": "Unduh gambar/video dari post Instagram.",
+          "path": "/downloader/instagram?url=",
+          "status": "ready",
+          "params": {
+            "url": "URL postingan Instagram (harus publik)"
+          }
+        }, 
+        {
           "name": "TikTok Downloader",
           "desc": "Download video foto TikTok",
           "path": "/downloader/tiktok?url=",
