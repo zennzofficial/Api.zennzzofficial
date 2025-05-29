@@ -1,101 +1,105 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
-// URLSearchParams sudah built-in di Node.js modern, tidak perlu require khusus.
+const CryptoJS = require('crypto-js'); // Dependency baru
+const { URLSearchParams } = require('url'); // Built-in di Node.js
 
-// Fungsi untuk mengambil halaman awal, token CSRF, dan cookies
-async function fetchInitialPage(initialUrl) {
-  try {
-    const headers = {
-      'User-Agent': 'Mozilla/5.0 (Linux; Android 10; RMX2185 Build/QP1A.190711.020) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.7103.60 Mobile Safari/537.36',
-      'Referer': initialUrl, // Bisa juga di-set ke halaman utama on4t.com jika initialUrl adalah sub-halaman
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-      'Accept-Language': 'en-US,en;q=0.9,id-ID;q=0.8,id;q=0.7'
-    };
+const allInOneDownloader = {
+  // Header User-Agent yang akan digunakan untuk semua request axios
+  axiosHeaders: {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+    'Accept-Language': 'en-US,en;q=0.9,id-ID;q=0.8,id;q=0.7',
+  },
 
-    const response = await axios.get(initialUrl, { headers, timeout: 15000 });
-    const $ = cheerio.load(response.data);
-    const csrfToken = $('meta[name="csrf-token"]').attr('content');
+  async getToken() {
+    try {
+      const response = await axios.get("https://allinonedownloader.com/", {
+        headers: this.axiosHeaders,
+        timeout: 15000
+      });
 
-    if (!csrfToken) {
-      throw new Error('Gagal menemukan token CSRF.');
+      const html = response.data;
+      const $ = cheerio.load(html);
+      const token = $("#token").val();
+      const sccPath = $("#scc").val(); // Path untuk POST request
+
+      if (!token || !sccPath) {
+        throw new Error("Gagal mendapatkan token atau path dari allinonedownloader.com.");
+      }
+
+      let cookieString = '';
+      if (response.headers['set-cookie']) {
+        cookieString = response.headers['set-cookie'].map(c => c.split(';')[0]).join('; ');
+      }
+      
+      return { token, sccPath, cookie: cookieString };
+
+    } catch (error) {
+      console.error("Error getToken (allinonedownloader):", error.message);
+      throw new Error(`Gagal mengambil token dari allinonedownloader: ${error.message}`);
     }
-
-    let cookies = '';
-    if (response.headers['set-cookie']) {
-      // Menggabungkan array cookies menjadi satu string header
-      cookies = response.headers['set-cookie'].map(cookie => cookie.split(';')[0]).join('; ');
-    }
-    return { csrfToken, cookies };
-  } catch (error) {
-    console.error('Error fetching initial page (on4t):', error.message);
-    throw new Error(`Gagal mengambil halaman awal on4t: ${error.message}`);
-  }
-}
-
-// Fungsi untuk mengirim POST request download
-async function postDownloadRequest(downloadPostUrl, userUrlToDownload, csrfToken, cookies) {
-  try {
-    const headers = {
-      'User-Agent': 'Mozilla/5.0 (Linux; Android 10; RMX2185 Build/QP1A.190711.020) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.7103.60 Mobile Safari/537.36',
-      'Referer': 'https://on4t.com/online-video-downloader', // Halaman asal POST request
-      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-      'Accept': '*/*', // Seringkali application/json atau */*
-      'X-Requested-With': 'XMLHttpRequest',
-      'Origin': 'https://on4t.com',
-    };
-
-    if (cookies) {
-      headers['Cookie'] = cookies;
-    }
-
+  },
+  
+  generateHash(url, token) {
+    const key = CryptoJS.enc.Hex.parse(token);
+    const iv = CryptoJS.enc.Hex.parse('afc4e290725a3bf0ac4d3ff826c43c10'); // IV statis dari kode Anda
+    const encrypted = CryptoJS.AES.encrypt(url, key, {
+      iv,
+      mode: CryptoJS.mode.CBC, // Mode CBC sering digunakan dengan IV
+      padding: CryptoJS.pad.Pkcs7 // Pkcs7 lebih umum daripada ZeroPadding untuk AES
+    });
+    return encrypted.toString(); // Base64 encoded ciphertext
+  },
+  
+  async download(urlToDownload) {
+    const conf = await this.getToken();
+    const { token, sccPath, cookie } = conf;
+    const hash = this.generateHash(urlToDownload, token);
+    
     const postData = new URLSearchParams();
-    postData.append('_token', csrfToken);
-    postData.append('link[]', userUrlToDownload); // 'link[]' sesuai kode asli
+    postData.append('url', urlToDownload);
+    postData.append('token', token);
+    postData.append('urlhash', hash);
+    
+    try {
+      const response = await axios.post(`https://allinonedownloader.com${sccPath}`, postData.toString(), {
+        headers: {
+          ...this.axiosHeaders, // Gunakan User-Agent yang sama
+          "Accept": "application/json, text/javascript, */*; q=0.01", // Lebih spesifik untuk XHR
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          "Cookie": cookie, // Cookie yang didapat dari getToken
+          "Origin": "https://allinonedownloader.com",
+          "Referer": "https://allinonedownloader.com/",
+          "X-Requested-With": "XMLHttpRequest"
+          // Header Sec-Ch-* bisa dihilangkan karena seringkali tidak krusial dan bisa membuat request terlalu spesifik
+        },
+        timeout: 45000 // Timeout lebih lama untuk proses download
+      });
 
-    const response = await axios.post(downloadPostUrl, postData.toString(), { headers, timeout: 25000 });
+      const jsonResponse = response.data; // axios otomatis parse jika content-type JSON
 
-    if (response.data && response.data.result && Array.isArray(response.data.result)) {
-      // Ambil hanya data yang relevan
-      return response.data.result.map(item => ({
-        title: item.title,
-        thumbnail: item.image || item.videoimg_file_url, // Pilih salah satu atau gabungkan
-        download_url: item.video_file_url,
-        // Anda bisa menambahkan field lain jika ada dan relevan
-      }));
-    } else if (response.data && response.data.status === 'error') {
-        throw new Error(response.data.message || 'API on4t mengembalikan error.');
+      if (jsonResponse.status === 'error' || jsonResponse.error || !jsonResponse.links) {
+        throw new Error(jsonResponse.message || jsonResponse.error || "API allinonedownloader.com mengembalikan error atau format tidak dikenal.");
+      }
+      
+      // Struktur data yang dikembalikan oleh API Anda
+      return {
+        input_url: urlToDownload,
+        source: jsonResponse.source,
+        title: jsonResponse.title,
+        duration: jsonResponse.duration,
+        thumbnail: jsonResponse.thumbnail,
+        links: jsonResponse.links // Ini adalah array berisi berbagai format dan kualitas
+      };
+    } catch (error) {
+      console.error("Error downloading (allinonedownloader):", error.response?.data || error.message);
+      const errorMessage = error.response?.data?.message || error.message || "Gagal melakukan request download.";
+      throw new Error(errorMessage);
     }
-    else {
-      throw new Error('Respons dari server on4t tidak sesuai format yang diharapkan.');
-    }
-  } catch (error) {
-    console.error('Error posting download request (on4t):', error.response?.data || error.message);
-    throw new Error(`Gagal melakukan permintaan download ke on4t: ${error.response?.data?.message || error.message}`);
   }
-}
-
-// Fungsi utama yang mengorkestrasi
-async function getVideoDownloadLinksFromOn4t(urlToDownload) {
-  const initialUrl = 'https://on4t.com/online-video-downloader';
-  const downloadPostUrl = 'https://on4t.com/all-video-download';
-
-  if (!urlToDownload) {
-    throw new Error('Parameter URL video wajib diisi.');
-  }
-
-  try {
-    const { csrfToken, cookies } = await fetchInitialPage(initialUrl);
-    const videoData = await postDownloadRequest(downloadPostUrl, urlToDownload, csrfToken, cookies);
-    return videoData;
-  } catch (error) {
-    // Error sudah di-log di fungsi sebelumnya, di sini kita lempar lagi untuk handler API
-    throw error; // Melempar error asli agar pesan lebih akurat
-  }
-}
-
+};
 
 // --- Rute Express ---
-module.exports = (app) => {
+module.exports = function (app) {
   const creatorName = "ZenzzXD";
 
   app.get('/downloader/all', async (req, res) => {
@@ -110,21 +114,19 @@ module.exports = (app) => {
     }
 
     try {
-      const result = await getVideoDownloadLinksFromOn4t(url);
+      const result = await allInOneDownloader.download(url);
       res.json({
         status: true,
         creator: creatorName,
         result: result
       });
     } catch (error) {
-      console.error("AllInOne Downloader Error:", error.message, error.stack);
-      // Jika error sudah berupa objek dengan message, gunakan itu.
-      // Jika tidak, gunakan pesan default.
-      const message = typeof error.message === 'string' ? error.message : 'Gagal mengambil data download.';
-      res.status(500).json({
+      console.error("AllInOne Downloader API Endpoint Error:", error.message, error.stack);
+      const statusCode = error.message.toLowerCase().includes("token") ? 409 : 500; // Conflict jika masalah token
+      res.status(statusCode).json({
         status: false,
         creator: creatorName,
-        message: message
+        message: error.message || 'Gagal mengambil data download.'
       });
     }
   });
