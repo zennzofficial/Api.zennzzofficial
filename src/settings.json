@@ -45,8 +45,7 @@
           "status": "ready"
         }
       ]
-    },
-    {
+    },{
       "name": "Search Tools",
       "items": [
         {
@@ -75,6 +74,15 @@
           "params": {
             "q": "Kata kunci resep (contoh: ayam goreng)",
             "limit": "Jumlah hasil (opsional, default 5, maks 10)"
+          }
+        },
+        {
+          "name": "TikTok Search",
+          "desc": "Mencari video atau pengguna di TikTok (via FlowFalcon).",
+          "path": "/search/tiktok?q=",
+          "status": "ready",
+          "params": {
+            "q": "Kata kunci pencarian TikTok"
           }
         }
       ]
