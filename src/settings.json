@@ -45,7 +45,8 @@
           "status": "ready"
         }
       ]
-    },{
+    },
+    {
       "name": "Search Tools",
       "items": [
         {
@@ -116,7 +117,7 @@
           "params": {
             "url": "URL video yang ingin diunduh (mis. TikTok, Facebook, dll.)"
           }
-        }, 
+        },
         {
           "name": "Instagram Downloader",
           "desc": "Unduh gambar/video dari post Instagram.",
@@ -125,7 +126,7 @@
           "params": {
             "url": "URL postingan Instagram (harus publik)"
           }
-        }, 
+        },
         {
           "name": "TikTok Downloader",
           "desc": "Download video foto TikTok",
@@ -174,7 +175,7 @@
             "cityB": "Nama kota tujuan (contoh: Surabaya)",
             "unit": "Satuan jarak: 'km' atau 'miles' (opsional, default 'km')"
           }
-        }, 
+        },
         {
           "name": "Background Remover (removal.ai)",
           "desc": "Menghapus background dari gambar menggunakan removal.ai (maks 5MB).",
@@ -182,6 +183,20 @@
           "status": "ready",
           "params": {
             "url": "URL gambar yang ingin dihapus backgroundnya"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Stalker",
+      "items": [
+        {
+          "name": "TikTok Stalker",
+          "desc": "Stalk profil TikTok (username saja).",
+          "path": "/stalker/tiktok?username=",
+          "status": "ready",
+          "params": {
+            "username": "Username TikTok yang ingin di-stalk"
           }
         }
       ]
