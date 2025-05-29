@@ -66,6 +66,16 @@
           "params": {
             "phone": "Nama HP yang ingin dicari (contoh: Samsung S23)"
           }
+        }, 
+        {
+          "name": "Cookpad Search",
+          "desc": "Mencari resep masakan di Cookpad beserta detailnya.",
+          "path": "/search/cookpad?q=&limit=",
+          "status": "ready",
+          "params": {
+            "q": "Kata kunci resep (contoh: ayam goreng)",
+            "limit": "Jumlah hasil (opsional, default 5, maks 10)"
+          }
         }
       ]
     },
