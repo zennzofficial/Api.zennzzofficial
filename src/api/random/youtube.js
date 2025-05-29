@@ -26,7 +26,7 @@ module.exports = (app) => {
             });
 
         } catch (err) {
-            console.error("Yogik YTMP3 Error:", err.response?.data || err.message); // Logging
+            console.error("YTMP3 Error:", err.response?.data || err.message); // Logging
             
             // Menggunakan status error dari API jika ada, atau default 500
             const statusCode = err.response?.status || 500; 
