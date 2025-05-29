@@ -110,12 +110,12 @@
           }
         },
         {
-          "name": "All-in-One Downloader (on4t)",
-          "desc": "Mengunduh video dari berbagai sumber via on4t.com.",
+          "name": "All-in-One Downloader", 
+          "desc": "Mengunduh video dari berbagai sumber.", 
           "path": "/downloader/all?url=",
           "status": "ready",
           "params": {
-            "url": "URL video yang ingin diunduh (mis. TikTok, Facebook, dll.)"
+            "url": "URL video yang ingin diunduh (mis. TikTok, Facebook, IG, dll.)"
           }
         },
         {
