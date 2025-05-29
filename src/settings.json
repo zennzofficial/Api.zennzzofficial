@@ -35,12 +35,12 @@
         {
           "name": "Claude AI One",
           "desc": "Berinteraksi dengan Claude AI.",
-          "path": "/ai/claudeone?prompt=",
+          "path": "/ai/claude-yogik?text=",
           "status": "ready",
           "params": {
-            "prompt": "Prompt atau pesan untuk Claude AI"
+            "text": "Prompt atau pertanyaan untuk Claude AI"
           },
-          "response_note": "Mengembalikan respons AI sebagai teks biasa (text/plain)."
+          "response_note": "Mengembalikan jawaban dari AI."
         },
         {
           "name": "HydroMind",
