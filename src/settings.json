@@ -154,6 +154,15 @@
           "params": {
             "url": "URL gambar yang ingin di-HD-kan"
           }
+        },
+        {
+          "name": "Background Remover (removal.ai)",
+          "desc": "Menghapus background dari gambar menggunakan removal.ai (maks 5MB).",
+          "path": "/tools/removebg?url=",
+          "status": "ready",
+          "params": {
+            "url": "URL gambar yang ingin dihapus backgroundnya"
+          }
         }
       ]
     }
