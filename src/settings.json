@@ -110,8 +110,8 @@
           }
         },
         {
-          "name": "All-in-One Downloader", 
-          "desc": "Mengunduh video dari berbagai sumber.", 
+          "name": "All-in-One Downloader",
+          "desc": "Mengunduh video dari berbagai sumber.",
           "path": "/downloader/all?url=",
           "status": "ready",
           "params": {
@@ -142,9 +142,6 @@
       "name": "Maker",
       "items": [
         {
-"name": "Maker",
-      "items": [
-        {
           "name": "Emojimix",
           "desc": "Menggabungkan dua emoji menjadi satu gambar.",
           "path": "/maker/emojimix?emoji1=&emoji2=",
@@ -152,6 +149,15 @@
           "params": {
             "emoji1": "Emoji pertama (contoh: 😀)",
             "emoji2": "Emoji kedua (contoh: 😭)"
+          }
+        },
+        {
+          "name": "Brat Image Maker",
+          "desc": "Membuat gambar dengan teks gaya Brat.",
+          "path": "/maker/brat?text=",
+          "status": "ready",
+          "params": {
+            "text": "Teks untuk gambar brat"
           }
         }
       ]
