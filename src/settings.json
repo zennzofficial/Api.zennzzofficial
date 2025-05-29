@@ -24,15 +24,6 @@
           }
         },
         {
-          "name": "AI Story Generator",
-          "desc": "Membuat cerita berdasarkan prompt.",
-          "path": "/ai/aistory?prompt=",
-          "status": "ready",
-          "params": {
-            "prompt": "Prompt atau ide cerita yang diinginkan"
-          }
-        }, 
-        {
           "name": "HydroMind",
           "desc": "See the list of supported AI models here: https://mind.hydrooo.web.id",
           "path": "/ai/hydromind?text=&model=",
