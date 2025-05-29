@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-module.jsorts = (app) => {
+module.exports = (app) => { // TYPO DIPERBAIKI: module.exports
   const creatorName = "ZenzzXD";
 
   app.get('/search/tiktok', async (req, res) => {
@@ -27,43 +27,57 @@ module.jsorts = (app) => {
 
       const externalData = response.data;
 
-      // --- PERBAIKAN DI SINI ---
       if (externalData && externalData.status === true && typeof externalData.result !== 'undefined') {
-        // Jika FlowFalcon sukses dan memiliki field 'result' (yang berisi array video)
+        // Jika FlowFalcon sukses dan memiliki field 'result'
         res.json({
           status: true,
-          creator: creatorName,         // Creator Anda
-          result: externalData.result   // Ambil HANYA bagian 'result' dari FlowFalcon
+          creator: creatorName,
+          result: externalData.result
         });
       } else if (externalData && externalData.status === false) {
         // Jika FlowFalcon sendiri melaporkan error
-        res.status(400).json({ // Atau status lain yang sesuai
+        console.warn("FlowFalcon API reported an error:", externalData);
+        res.status(400).json({ // Bisa juga 422 Unprocessable Entity atau status lain yang sesuai
           status: false,
           creator: creatorName,
           message: externalData.message || 'API eksternal TikTok Search (FlowFalcon) mengembalikan error.'
         });
       } else {
-        // Fallback jika struktur respons FlowFalcon tidak terduga,
-        // tapi bukan error dari sisi axios (misalnya, bukan 404 atau 500 dari FlowFalcon)
+        // Fallback jika struktur respons FlowFalcon tidak terduga
         console.warn("Struktur respons tidak terduga dari FlowFalcon TikTok Search:", externalData);
-        res.json({
-          status: true, // Atau false, tergantung bagaimana Anda ingin menangani ini
+        res.status(502).json({ // 502 Bad Gateway: server proxy menerima respons tidak valid
+          status: false,
           creator: creatorName,
-          result: externalData // Teruskan seluruh data sebagai fallback
+          message: 'Respons tidak terduga dari API eksternal TikTok.',
+          data_received: externalData // Opsional: sertakan data yang diterima untuk debugging
         });
       }
-      // --- AKHIR PERBAIKAN ---
 
     } catch (err) {
-      console.error("FlowFalcon TikTok Search Error (axios):", err.response?.data || err.message);
+      // Logging error yang lebih detail
+      console.error("FlowFalcon TikTok Search Error (axios):", {
+          message: err.message,
+          stack: err.stack, // Penting untuk debugging di Vercel
+          isAxiosError: err.isAxiosError,
+          config_url: err.config?.url,
+          response_status: err.response?.status,
+          response_data: err.response?.data
+      });
 
       const statusCode = err.response?.status || 500;
-      const message = err.response?.data?.message || err.message || 'Terjadi kesalahan saat mengambil data dari FlowFalcon.';
+      let errMessage = 'Terjadi kesalahan saat mengambil data dari FlowFalcon.'; // Default message
+
+      // Coba ambil pesan error yang lebih spesifik
+      if (err.response?.data?.message && typeof err.response.data.message === 'string') {
+        errMessage = err.response.data.message;
+      } else if (err.message && typeof err.message === 'string') {
+        errMessage = err.message;
+      }
 
       res.status(statusCode).json({
         status: false,
         creator: creatorName,
-        message: message
+        message: errMessage
       });
     }
   });
