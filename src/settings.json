@@ -150,15 +150,6 @@
             "emoji1": "Emoji pertama (contoh: 😀)",
             "emoji2": "Emoji kedua (contoh: 😭)"
           }
-        },
-        {
-          "name": "Brat Image Maker",
-          "desc": "Membuat gambar dengan teks gaya Brat.",
-          "path": "/maker/brat?text=",
-          "status": "ready",
-          "params": {
-            "text": "Teks untuk gambar brat"
-          }
         }
       ]
     },
