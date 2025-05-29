@@ -12,13 +12,16 @@
   "dependencies": {
     "axios": "^1.6.8",
     "body-parser": "^1.20.3",
-    "cheerio": "^1.0.0",
+    "cheerio": "^1.0.0-rc.12",  // Versi rc.12 adalah versi stabil yang umum
     "cors": "^2.8.5",
     "chalk": "^4.1.2",
+    "crypto-js": "^4.2.0",   // Ditambahkan
     "express": "^4.19.2",
-    "fs": "^0.0.1-security",
-    "https": "^1.0.0",
-    "node-fetch": "^2.6.1",
-    "yt-search": "^2.12.1"
+    "form-data": "^4.0.0",    // Ditambahkan
+    "node-fetch": "^2.6.1",   // Anda sudah punya ini, kita banyak menggantinya dengan axios
+    "yt-search": "^2.10.4"    // Versi umum stabil, sebelumnya ^2.12.1 juga oke
+    // "fs" dan "https" adalah modul inti Node.js, tidak perlu dicantumkan di dependencies.
+    // Jika ada secara spesifik karena package dummy, biasanya aman untuk dihapus
+    // atau biarkan saja jika tidak menyebabkan masalah.
   }
-}
+  }
