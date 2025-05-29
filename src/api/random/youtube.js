@@ -3,52 +3,58 @@ const axios = require('axios');
 module.exports = (app) => {
     const creatorName = "ZenzXD"; // Nama creator Anda
 
-    app.get('/downloader/ytmp3', async (req, res) => {
-        const { url } = req.query; 
+    // Handler umum untuk menembak API Yogik
+    const handleYogikDownload = async (req, res, apiEndpoint, formatType) => {
+        const { url } = req.query; // Menggunakan 'url'
 
         if (!url) {
             return res.status(400).json({
                 status: false,
-                creator: creatorName, 
-                message: "Parameter 'url' wajib diisi" 
+                creator: creatorName,
+                message: "Parameter 'url' wajib diisi"
             });
         }
 
         try {
-            const { data } = await axios.get(`https://api.yogik.id/downloader/ytmp3v2?url=${encodeURIComponent(url)}`);
+            // Panggil API Yogik sesuai endpoint (MP3 atau MP4)
+            const { data } = await axios.get(`${apiEndpoint}?url=${encodeURIComponent(url)}`);
 
-            // --- PERBAIKAN DI SINI ---
-            let resultData = {}; 
-
-            // Pastikan data ada dan berupa objek
+            let resultData = {};
+            // Pastikan data ada dan berupa objek, lalu hapus creator Yogik
             if (data && typeof data === 'object') {
-                // Gunakan destructuring: Ambil 'creator' (untuk dibuang)
-                // dan sisanya (...rest) masukkan ke resultData.
-                const { creator, ...rest } = data; 
-                resultData = rest; // resultData sekarang berisi semua KECUALI 'creator'
+                const { creator, ...rest } = data;
+                resultData = rest;
             } else {
-                // Jika data bukan objek, kirim apa adanya (jarang terjadi)
                 resultData = data;
             }
-            // --- AKHIR PERBAIKAN ---
 
+            // Kirim respons sukses
             res.json({
                 status: true,
-                creator: creatorName, // Hanya creator Anda
-                result: resultData    // Hanya data hasil, tanpa creator Yogik
+                creator: creatorName, // Creator Anda
+                result: resultData    // Data tanpa creator Yogik
             });
 
         } catch (err) {
-            console.error("YTMP3 Error:", err.response?.data || err.message); 
-            const statusCode = err.response?.status || 500; 
+            console.error(`Yogik ${formatType} Error:`, err.response?.data || err.message);
+            const statusCode = err.response?.status || 500;
 
+            // Kirim respons error
             res.status(statusCode).json({
                 status: false,
-                creator: creatorName, 
-                message: err?.response?.data?.message || err.message || 'Terjadi kesalahan saat mengambil data YTMP3.'
+                creator: creatorName,
+                message: err?.response?.data?.message || err.message || `Terjadi kesalahan saat mengambil data ${formatType}.`
             });
         }
+    };
+
+    // Rute untuk YTMP3
+    app.get('/downloader/ytmp3', (req, res) => {
+        handleYogikDownload(req, res, 'https://api.yogik.id/downloader/ytmp3v2', 'YTMP3');
     });
 
-    // Jangan lupa tambahkan kode YTMP4 Anda jika masih ingin digunakan
+    // Rute untuk YTMP4
+    app.get('/downloader/ytmp4', (req, res) => {
+        handleYogikDownload(req, res, 'https://api.yogik.id/downloader/ytmp4v2', 'YTMP4');
+    });
 };
