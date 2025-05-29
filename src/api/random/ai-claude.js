@@ -3,7 +3,7 @@ const axios = require('axios');
 module.exports = (app) => {
     const creatorName = "ZenzzXD"; // Nama creator Anda
 
-    app.get('/ai/claude-yogik', async (req, res) => { // Path baru, misalnya /ai/claude-yogik
+    app.get('/ai/claude', async (req, res) => { // Path baru, misalnya /ai/claude-yogik
         const { text } = req.query; // Menggunakan 'text' sesuai API target
 
         // Validasi input
