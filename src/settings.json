@@ -165,6 +165,17 @@
           }
         },
         {
+          "name": "Jarak",
+          "desc": "Menghitung jarak dan estimasi waktu tempuh antara dua kota.",
+          "path": "/tools/distance?cityA=&cityB=&unit=",
+          "status": "ready",
+          "params": {
+            "cityA": "Nama kota asal (contoh: Jakarta)",
+            "cityB": "Nama kota tujuan (contoh: Surabaya)",
+            "unit": "Satuan jarak: 'km' atau 'miles' (opsional, default 'km')"
+          }
+        }, 
+        {
           "name": "Background Remover (removal.ai)",
           "desc": "Menghapus background dari gambar menggunakan removal.ai (maks 5MB).",
           "path": "/tools/removebg?url=",
