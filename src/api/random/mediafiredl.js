@@ -1,67 +1,94 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
+const { lookup } = require('mime-types'); // Dependency baru
 
 /**
- * Fungsi inti untuk mengambil link download dari MediaFire.
- * @param {string} mediafireUrl - URL halaman MediaFire.
- * @returns {Promise<object>} Objek berisi nama file, mime type, ukuran, dan link download.
+ * Fungsi inti untuk mengambil link download MediaFire via rianofc-bypass.
+ * @param {string} mediafireOriginalUrl - URL halaman MediaFire asli.
+ * @returns {Promise<object>} Objek berisi detail file dan link download.
  */
-async function fetchMediafireLink(mediafireUrl) {
+async function fetchMediafireViaRianofc(mediafireOriginalUrl) {
   try {
-    const response = await axios.get(mediafireUrl, {
+    const intermediaryApiUrl = `https://rianofc-bypass.hf.space/scrape?url=${encodeURIComponent(mediafireOriginalUrl)}`;
+    console.log(`Requesting MediaFire data via RianOFCH: ${intermediaryApiUrl}`);
+
+    const responseFromIntermediary = await axios.get(intermediaryApiUrl, {
       headers: {
-        // MediaFire mungkin sensitif terhadap User-Agent
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
-        'Accept-Language': 'en-US,en;q=0.9,id;q=0.8'
+        'User-Agent': 'ZenzzXDApi/1.0 (Bypass Scraper)' // User agent untuk API bypass
       },
-      timeout: 15000 // Timeout 15 detik
+      timeout: 25000 // Timeout 25 detik
     });
 
-    const html = response.data;
-    const $ = cheerio.load(html);
+    const intermediaryJson = responseFromIntermediary.data;
 
-    const downloadButton = $('a#downloadButton');
-    const link = downloadButton.attr('href');
-
-    if (!link || typeof link !== 'string' || link.trim() === '') {
-      // Coba cari pesan error di halaman jika ada
-      const anError = $('.notranslate.error').text().trim();
-      if (anError) {
-          throw new Error(`MediaFire: ${anError}`);
-      }
-      throw new Error('Link download tidak ditemukan di halaman MediaFire. URL mungkin tidak valid atau struktur halaman berubah.');
+    // Pastikan respons dari API bypass adalah JSON dan memiliki properti 'html'
+    if (typeof intermediaryJson !== 'object' || typeof intermediaryJson.html !== 'string') {
+      console.error("Respons tidak valid dari rianofc-bypass:", intermediaryJson);
+      throw new Error('Respons tidak valid dari API bypass MediaFire (rianofc).');
     }
 
-    // Ekstrak ukuran file, bersihkan teksnya
-    let size = downloadButton.text().trim().replace(/Download/gi, '').replace(/\(|\)/g, '').trim();
-    if (!size) { // Fallback jika ukuran tidak ada di tombol
-        size = $('.dl-info .file-size').first().text().trim() || 'N/A';
+    const $ = cheerio.load(intermediaryJson.html);
+
+    // Ekstraksi data menggunakan selector Cheerio
+    // Selector ini sangat bergantung pada HTML yang dikembalikan oleh rianofc-bypass
+    let filename = $('.dl-info').find('.intro .filename').text().trim();
+    const type = $('.dl-btn-label').find('.filetype > span').first().text().trim(); // Ambil span pertama untuk tipe umum
+    const size = $('.dl-info').find('.details li:contains("File size:") span').text().trim();
+    const uploaded = $('.dl-info').find('.details li:contains("Uploaded:") span').text().trim();
+    const downloadLink = $('.download_link .input').attr('href'); // Selector yang umum untuk link di wrapper
+
+    if (!downloadLink) {
+      throw new Error('Gagal mendapatkan link download dari data yang diproses.');
+    }
+
+    // Jika filename kosong (selector gagal), coba ambil dari URL download
+    if (!filename && downloadLink) {
+        try {
+            const urlParts = new URL(downloadLink);
+            const pathParts = urlParts.pathname.split('/');
+            filename = decodeURIComponent(pathParts[pathParts.length - 1]) || "unknown_file";
+        } catch (e) {
+            filename = "unknown_file_from_link";
+        }
     }
 
 
-    // Ekstrak nama file dari URL download
-    const linkParts = link.split('/');
-    const fileName = decodeURIComponent(linkParts[linkParts.length - 1]); // Ambil bagian terakhir dan decode
+    // Ekstraksi ekstensi dan mimetype
+    // Regex asli Anda: /\.(.*?)/ . Karakter '' mungkin spesifik.
+    // Kita coba fallback jika regex gagal.
+    let ext = 'bin'; // Default extension
+    const extElementText = $('.dl-info').find('.filetype > span').eq(1).text(); // Elemen yang mungkin berisi ekstensi
+    const regexMatch = /[\(,]?\.(.*?)[,\)]?/i.exec(extElementText); // Regex yang lebih umum: .ext atau (.ext)
+    
+    if (regexMatch && regexMatch[1]) {
+        ext = regexMatch[1].trim().toLowerCase();
+    } else if (filename && filename.includes('.')) {
+        const parts = filename.split('.');
+        if (parts.length > 1) {
+            ext = parts.pop().toLowerCase();
+        }
+    }
+    
+    const mimetype = lookup(ext) || 'application/octet-stream';
 
-    // Ekstrak ekstensi file sebagai mime type sederhana
-    const nameParts = fileName.split('.');
-    const mimeType = nameParts.length > 1 ? nameParts.pop().toLowerCase() : 'unknown';
 
     return {
-      filename: fileName,
-      mime: mimeType,
-      size: size,
-      link: link
+      filename,
+      type: type || ext.toUpperCase(), // Jika type kosong, gunakan ekstensi
+      size,
+      uploaded_date: uploaded,
+      extension: ext,
+      mimetype,
+      download_link: downloadLink
     };
 
   } catch (error) {
-    console.error("MediaFire Scraper Error:", error.message);
+    console.error("MediaFire Rianofc Scraper Error:", error.response?.data || error.message);
     if (axios.isAxiosError(error) && error.response) {
-      // Jika error dari axios dengan respons (misalnya 404 dari MediaFire)
-      throw new Error(`Gagal mengakses URL MediaFire (Status: ${error.response.status}). Cek kembali URL Anda.`);
+      throw new Error(`Gagal menghubungi API bypass MediaFire (rianofc): Status ${error.response.status}`);
     }
-    // Untuk error lain (termasuk yang dilempar manual di atas)
-    throw new Error(error.message || 'Gagal mengambil informasi dari MediaFire.');
+    // Untuk error parsing atau error dari throw manual
+    throw new Error(error.message || 'Gagal memproses link MediaFire via API bypass (rianofc).');
   }
 }
 
@@ -80,27 +107,24 @@ module.exports = (app) => {
       });
     }
 
-    // Validasi sederhana URL MediaFire
-    if (!url.includes('mediafire.com/file/')) {
+    if (!/^https?:\/\/(www\.)?mediafire\.com\/file\//.test(url)) { // Validasi URL MediaFire yang lebih spesifik
         return res.status(400).json({
             status: false,
             creator: creatorName,
-            message: 'Harap masukkan URL MediaFire yang valid (contoh: https://ac.insvid.com/widget?url=https://www.youtube.com/watch?v=$3)'
+            message: 'Harap masukkan URL file MediaFire yang valid (contoh: https://ac.insvid.com/widget?url=https://www.youtube.com/watch?v=$3...)'
         });
     }
 
-
     try {
-      const result = await fetchMediafireLink(url);
+      const result = await fetchMediafireViaRianofc(url);
       res.json({
         status: true,
         creator: creatorName,
         result: result
       });
     } catch (error) {
-      console.error("MediaFire Downloader Endpoint Error:", error.message, error.stack);
-      // Tentukan status code berdasarkan pesan error jika relevan
-      const statusCode = error.message.toLowerCase().includes("tidak ditemukan") || error.message.toLowerCase().includes("tidak valid") ? 404 : 500;
+      console.error("MediaFire Downloader Endpoint Error (Rianofc):", error.message, error.stack);
+      const statusCode = error.message && (error.message.toLowerCase().includes("tidak ditemukan") || error.message.toLowerCase().includes("tidak valid")) ? 404 : 500;
       res.status(statusCode).json({
         status: false,
         creator: creatorName,
@@ -108,6 +132,4 @@ module.exports = (app) => {
       });
     }
   });
-
-  // Tambahkan rute lain di sini...
 };
