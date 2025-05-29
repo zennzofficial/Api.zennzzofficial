@@ -110,6 +110,15 @@
           }
         },
         {
+          "name": "MediaFire Downloader",
+          "desc": "Mendownload link dari mediafire.",
+          "path": "/downloader/mediafire?url=",
+          "status": "ready",
+          "params": {
+            "url": "URL halaman MediaFire"
+          }
+        }, 
+        {
           "name": "All-in-One Downloader",
           "desc": "Mengunduh video dari berbagai sumber.",
           "path": "/downloader/all?url=",
