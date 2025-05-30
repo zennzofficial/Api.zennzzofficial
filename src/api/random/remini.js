@@ -58,28 +58,37 @@ async function upscaleImage(buffer, filename = 'image.jpg', scale = 4, type = 0)
 }
 
 module.exports = function (app) {
-  app.post('/image/upscale', async (req, res) => {
+  app.get('/tools/remini', async (req, res) => {
     try {
-      const file = req.files?.image;
-
-      if (!file || !file.data) {
+      const imageUrl = req.query.url;
+      if (!imageUrl) {
         return res.status(400).json({
           status: false,
           creator: CREATOR_NAME,
-          message: "Parameter 'image' wajib diisi dalam form-data."
+          message: "Parameter 'url' wajib diisi."
         });
       }
 
-      const type = await fileTypeFromBuffer(file.data);
+      // Download gambar dari URL input
+      const downloadRes = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+      const buffer = Buffer.from(downloadRes.data);
+
+      // Deteksi tipe file dan ekstensi
+      const type = await fileTypeFromBuffer(buffer);
       const ext = type?.ext || 'jpg';
 
-      const upscaledUrl = await upscaleImage(file.data, `upload.${ext}`);
+      // Proses upscale dengan API
+      const upscaledUrl = await upscaleImage(buffer, `upload.${ext}`);
+
+      // Download hasil gambar upscale
       const finalImage = await axios.get(upscaledUrl, { responseType: 'arraybuffer' });
 
+      // Kirim gambar hasil upscale langsung ke client
       res.setHeader('Content-Type', finalImage.headers['content-type']);
       res.setHeader('Cache-Control', 'public, max-age=86400');
-      res.setHeader('Content-Disposition', 'inline; filename="upscaled.' + ext + '"');
+      res.setHeader('Content-Disposition', `inline; filename="upscaled.${ext}"`);
       return res.send(finalImage.data);
+
     } catch (e) {
       console.error("[Upscale Error]", e);
       return res.status(500).json({
