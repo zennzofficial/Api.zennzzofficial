@@ -1,8 +1,10 @@
+// File: pinterestApi.js (atau nama lain yang Anda inginkan)
+
 const axios = require('axios');
 const cheerio = require('cheerio');
 const { URLSearchParams } = require('url'); // Built-in di Node.js
 
-const PINTEREST_DOWNLOADER_BASEURL = "https://pinterestdownloader.com/ID"; // Atau "/ID" jika lebih stabil
+const PINTEREST_DOWNLOADER_BASEURL = "https://pinterestdownloader.com/ID";
 
 /**
  * Fungsi inti untuk mengambil media dari Pinterest via pinterestdownloader.com
@@ -11,7 +13,6 @@ const PINTEREST_DOWNLOADER_BASEURL = "https://pinterestdownloader.com/ID"; // At
  */
 async function fetchPinterestMedia(pinterestUrl) {
   try {
-    // 1. Ambil halaman awal untuk cookies
     console.log(`PinterestDL: GET ${PINTEREST_DOWNLOADER_BASEURL} untuk cookies`);
     const initialResponse = await axios.get(PINTEREST_DOWNLOADER_BASEURL, {
       headers: {
@@ -29,33 +30,30 @@ async function fetchPinterestMedia(pinterestUrl) {
       "origin": "https://pinterestdownloader.com",
       "referer": PINTEREST_DOWNLOADER_BASEURL,
       "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
-      "x-requested-with": "XMLHttpRequest" // Sering ada di request AJAX
+      "x-requested-with": "XMLHttpRequest"
     };
 
-    // 2. POST URL Pinterest untuk memulai proses
     const bodyUrl = new URLSearchParams({ url: pinterestUrl }).toString();
     console.log(`PinterestDL: POST URL ${pinterestUrl} ke ${PINTEREST_DOWNLOADER_BASEURL}`);
     const firstPostResponse = await axios.post(PINTEREST_DOWNLOADER_BASEURL, bodyUrl, { 
         headers: commonHeaders, 
-        timeout: 20000 // 20 detik timeout
+        timeout: 20000 
     });
     
     let htmlContent = firstPostResponse.data;
     let $ = cheerio.load(htmlContent);
     let processId = $('input[name="process_id"]').attr('value');
     
-    // Coba regex jika selector gagal, meskipun selector input biasanya lebih stabil
     if (!processId) {
         const processIdMatch = htmlContent.match(/process_id["']?\s*:\s*["']([a-f0-9\-]+)["']/i);
         processId = processIdMatch?.[1];
     }
 
-    // 3. Polling jika ada process_id
     if (processId) {
       console.log(`PinterestDL: Ditemukan process_id: ${processId}. Memulai polling.`);
       let attempts = 0;
-      const MAX_POLL_ATTEMPTS = 5; // Maksimal 5 kali polling (total sekitar 15-20 detik)
-      const POLL_INTERVAL = 3000; // Tunggu 3 detik antar polling
+      const MAX_POLL_ATTEMPTS = 5; 
+      const POLL_INTERVAL = 3000; 
 
       for (attempts = 0; attempts < MAX_POLL_ATTEMPTS; attempts++) {
         await new Promise(r => setTimeout(r, POLL_INTERVAL));
@@ -63,27 +61,24 @@ async function fetchPinterestMedia(pinterestUrl) {
         const pollBody = new URLSearchParams({ process_id: processId }).toString();
         const pollResponse = await axios.post(PINTEREST_DOWNLOADER_BASEURL, pollBody, { 
             headers: commonHeaders, 
-            timeout: 5000 // Timeout per poll request
+            timeout: 7000 // Timeout per poll request lebih pendek
         });
         htmlContent = pollResponse.data;
-        $ = cheerio.load(htmlContent); // Muat ulang Cheerio dengan HTML baru
-        // Cek apakah pesan "we are working on" atau sejenisnya masih ada
+        $ = cheerio.load(htmlContent); 
         if (!/we are working on|processing your link|กำลังประมวลผลลิงก์ของคุณ/i.test(htmlContent)) {
           console.log("PinterestDL: Polling selesai, konten diterima.");
           break;
         }
       }
-      if (attempts === MAX_POLL_ATTEMPTS && /we are working on|processing your link|กำลังประมวลผลลิงก์ของคุณ/i.test(htmlContent)) {
+      if (attempts >= MAX_POLL_ATTEMPTS && /we are working on|processing your link|กำลังประมวลผลลิงก์ของคุณ/i.test(htmlContent)) {
         throw new Error("Proses di pinterestdownloader.com terlalu lama atau gagal setelah polling maksimal.");
       }
     } else {
       console.log("PinterestDL: Tidak ada process_id, melanjutkan dengan HTML respons pertama.");
     }
 
-    // 4. Parse HTML final untuk link download
     const resultMap = {};
 
-    // Selector untuk gambar (biasanya .download__btn atau sejenisnya)
     $('div.results-container a.download__btn, table.table a.button').each((_, el) => {
       const btn = $(el);
       const href = btn.attr('href');
@@ -92,7 +87,7 @@ async function fetchPinterestMedia(pinterestUrl) {
 
       let qualityMatch = text.match(/(HD quality|\d+p|\d{3,4}x\d{3,4}|Gambar Kualitas HD)/i);
       let quality = qualityMatch?.[1]?.replace(/Gambar Kualitas /i, '').replace(/ quality/i, '').toUpperCase() || 
-                    text.replace(/Unduh Link|Download Link|Download/i, '').trim().replace(/[\(\)]/g,'') || "standard";
+                    text.replace(/Unduh Link|Download Link|Download/ig, '').trim().replace(/[\(\)]/g,'') || "standard";
       quality = quality === "" ? "standard" : quality;
 
       let type = text.toLowerCase().includes('force') ? "force" : "direct";
@@ -101,15 +96,14 @@ async function fetchPinterestMedia(pinterestUrl) {
       resultMap[key][type] = href;
     });
 
-    // Selector untuk video dan GIF (biasanya .download_button atau sejenisnya)
-    $('div.buttons a.download_button, div.downloader-section a.download-button').each((_, el) => {
+    $('div.buttons a.download_button, div.downloader-section a.download-button, a.download-button').each((_, el) => {
       const btn = $(el);
       const href = btn.attr('href');
       const text = btn.text().trim();
       if (!href) return;
 
       if (/video|mp4/i.test(text) || (href && href.includes('.mp4'))) {
-        let quality = "HD"; // Default
+        let quality = "HD"; 
         const qualityMatch = text.match(/(\d+p|HD|Full HD|Video \w+)/i);
         if (qualityMatch && qualityMatch[1]) quality = qualityMatch[1].replace(/Video /i,'').toUpperCase();
         
@@ -119,11 +113,19 @@ async function fetchPinterestMedia(pinterestUrl) {
         resultMap[key][type] = href;
       } else if (/\.gif($|\?)/i.test(href) || /gif/i.test(text)) {
         let type = text.toLowerCase().includes('force') ? "force" : "direct";
-        // Buat key unik untuk GIF berdasarkan nama file jika bisa
         let gifNamePart = "unknown";
-        try { gifNamePart = new URL(href).pathname.split('/').pop().split('?')[0]; } catch {}
+        try { gifNamePart = new URL(href).pathname.split('/').pop().split('?')[0].replace(/\.\w+$/, ''); } catch {}
         let key = `gif_${gifNamePart}`;
         if (!resultMap[key]) resultMap[key] = { tag: "gif", quality: "standard" };
+        resultMap[key][type] = href;
+      } else if (!text.match(/video|mp4|gif/i) && (href.includes('.jpg') || href.includes('.png') || href.includes('.webp'))) {
+        let qualityMatch = text.match(/(HD quality|\d+p|\d{3,4}x\d{3,4}|Gambar Kualitas HD)/i);
+        let quality = qualityMatch?.[1]?.replace(/Gambar Kualitas /i, '').replace(/ quality/i,'').toUpperCase() || 
+                      text.replace(/Unduh Link|Download Link|Download/ig, '').trim().replace(/[\(\)]/g,'') || "image_fallback";
+        quality = quality === "" ? "image_fallback" : quality;
+        let type = text.toLowerCase().includes('force') ? "force" : "direct";
+        let key = `image_${quality.replace(/\s+/g, '_').toLowerCase()}_fb`;
+        if (!resultMap[key]) resultMap[key] = { tag: "image", quality };
         resultMap[key][type] = href;
       }
     });
@@ -134,17 +136,32 @@ async function fetchPinterestMedia(pinterestUrl) {
       if (errorMessageFromSite) {
         throw new Error(`pinterestdownloader.com: ${errorMessageFromSite}`);
       }
-      throw new Error("Gagal mendapatkan link download. Hasil kosong atau URL tidak didukung.");
+      throw new Error("Gagal mendapatkan link download. Hasil kosong atau URL tidak didukung oleh pinterestdownloader.com.");
     }
     return results;
 
   } catch (error) {
     console.error("PinterestDL Scraper Full Error:", error.message);
     if (axios.isAxiosError(error) && error.response?.data) {
-        const $errorHtml = cheerio.load(error.response.data.toString());
-        const siteErrorMessage = $errorHtml('.error-message, .alert-danger, div.msg[style*="color:red"]').first().text().trim();
-        if (siteErrorMessage) {
-            throw new Error(`pinterestdownloader.com: ${siteErrorMessage}`);
+        let errorDataString = '';
+        // Cek jika error.response.data adalah Buffer (misalnya dari respons non-HTML)
+        if (Buffer.isBuffer(error.response.data)) {
+            errorDataString = error.response.data.toString('utf-8');
+        } else if (typeof error.response.data === 'string') {
+            errorDataString = error.response.data;
+        } else {
+            errorDataString = JSON.stringify(error.response.data);
+        }
+        
+        try {
+            const $error = cheerio.load(errorDataString); // Coba parse sebagai HTML
+            const siteErrorMessage = $error('.error-message, .alert-danger, div.msg[style*="color:red"]').first().text().trim();
+            if (siteErrorMessage) {
+                throw new Error(`pinterestdownloader.com: ${siteErrorMessage}`);
+            }
+        } catch (cheerioError) {
+            // Abaikan jika gagal parse sebagai HTML, gunakan pesan error asli
+            console.warn("Gagal parse error response sebagai HTML:", cheerioError.message);
         }
     }
     throw new Error(error.message || "Terjadi kesalahan saat memproses link Pinterest.");
@@ -166,12 +183,13 @@ module.exports = (app) => {
         message: 'Parameter url (link Pinterest) wajib diisi.'
       });
     }
-    // Validasi sederhana untuk URL Pinterest
-    if (!/pinterest\.com(\S+)?/.test(url)) {
+    
+    // Validasi URL Pinterest yang sudah diperbaiki untuk menerima pin.it
+    if (!/^(https?:\/\/)?(www\.)?(pinterest\.com|pin\.it)(\S+)?/.test(url)) {
         return res.status(400).json({
             status: false,
             creator: creatorName,
-            message: 'Harap masukkan URL Pinterest yang valid.'
+            message: 'Harap masukkan URL Pinterest yang valid (domain pinterest.com atau pin.it).'
         });
     }
 
@@ -184,7 +202,7 @@ module.exports = (app) => {
       });
     } catch (error) {
       console.error("Pinterest Downloader Endpoint Error:", error.message, error.stack);
-      const statusCode = error.message && (error.message.toLowerCase().includes("tidak ditemukan") || error.message.toLowerCase().includes("tidak valid") || error.message.toLowerCase().includes("gagal mendapatkan link")) ? 404 : 500;
+      const statusCode = error.message && (error.message.toLowerCase().includes("tidak ditemukan") || error.message.toLowerCase().includes("tidak valid") || error.message.toLowerCase().includes("gagal mendapatkan link") || error.message.includes("pinterestdownloader.com:")) ? 404 : 500;
       res.status(statusCode).json({
         status: false,
         creator: creatorName,
@@ -192,4 +210,7 @@ module.exports = (app) => {
       });
     }
   });
+
+  // Tambahkan rute lain di sini, misalnya:
+  // require('./namaFileApiLain')(app);
 };
