@@ -75,4 +75,3 @@ router.get('/maker/brat', async (req, res) => {
 });
 
 module.exports = router;
-
