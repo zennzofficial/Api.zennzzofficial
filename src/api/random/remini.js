@@ -1,65 +1,92 @@
 const axios = require('axios');
+const FormData = require('form-data');
+const crypto = require('crypto');
+const { fileTypeFromBuffer } = require('file-type');
 
-module.exports = (app) => {
-    const creatorName = "ZenzzXD"; // Nama creator Anda
+const CREATOR_NAME = "ZenzXD";
 
-    app.get('/tools/remini', async (req, res) => {
-        const { url } = req.query; // Menggunakan 'url'
+function genUsername() {
+  return `${crypto.randomBytes(8).toString('hex')}_aiimglarger`;
+}
 
-        // Validasi input
-        if (!url) {
-            return res.status(400).json({
-                status: false,
-                creator: creatorName, // Ditambahkan
-                message: 'Parameter url wajib diisi'
-            });
+async function upscaleImage(buffer, filename = 'image.jpg', scale = 4, type = 0) {
+  const username = genUsername();
+  const form = new FormData();
+
+  form.append('type', type);
+  form.append('username', username);
+  form.append('scaleRadio', scale.toString());
+  form.append('file', buffer, { filename, contentType: 'image/jpeg' });
+
+  const uploadRes = await axios.post('https://photoai.imglarger.com/api/PhoAi/Upload', form, {
+    headers: {
+      ...form.getHeaders(),
+      'User-Agent': 'Dart/3.5',
+      'Accept-Encoding': 'gzip'
+    }
+  });
+
+  const code = uploadRes?.data?.data?.code;
+  if (!code) throw new Error('Gagal mengunggah gambar');
+
+  const pollData = { code, type, username, scaleRadio: scale.toString() };
+
+  for (let i = 0; i < 1000; i++) {
+    const statusRes = await axios.post(
+      'https://photoai.imglarger.com/api/PhoAi/CheckStatus',
+      JSON.stringify(pollData),
+      {
+        headers: {
+          'User-Agent': 'Dart/3.5',
+          'Accept-Encoding': 'gzip',
+          'Content-Type': 'application/json'
         }
+      }
+    );
 
-        try {
-            const apiUrl = `https://flowfalcon.dpdns.org/imagecreator/remini?url=${encodeURIComponent(url)}`;
-            console.log(`Requesting Remini from: ${apiUrl}`); // Logging
+    const status = statusRes?.data?.data;
+    if (status?.status === 'success') {
+      const url = status?.downloadUrls?.[0];
+      if (!url) throw new Error('URL gambar tidak ditemukan');
+      return url;
+    }
 
-            // Panggil API eksternal
-            const { data } = await axios.get(apiUrl, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0' // User-Agent standar
-                },
-                timeout: 60000 // Beri timeout 60 detik untuk jaga-jaga
-            });
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
 
-            // --- PERBAIKAN DI SINI ---
-            // Cek jika data ada dan berupa objek
-            if (data && typeof data === 'object') {
-                // Sebarkan respons asli, LALU timpa/setel creator
-                res.json({
-                    ...data,           // Mengambil status, result, dll.
-                    creator: creatorName // Menimpa creator menjadi ZenzzXD
-                });
-            } else {
-                // Fallback jika data tidak sesuai harapan
-                res.json({
-                    status: true, // Asumsikan sukses jika data ada tapi bukan objek
-                    creator: creatorName,
-                    result: data
-                });
-            }
-            // --- AKHIR PERBAIKAN ---
+  throw new Error('Upscale gagal setelah polling maksimal');
+}
 
-        } catch (err) {
-            console.error("FlowFalcon Remini Error:", err.response?.data || err.message); // Logging
+module.exports = function (app) {
+  app.post('/image/upscale', async (req, res) => {
+    try {
+      const file = req.files?.image;
 
-            const statusCode = err.response?.status || 500;
-            const message = err.response?.data?.message || err.message || 'Gagal memproses gambar dengan remini';
+      if (!file || !file.data) {
+        return res.status(400).json({
+          status: false,
+          creator: CREATOR_NAME,
+          message: "Parameter 'image' wajib diisi dalam form-data."
+        });
+      }
 
-            // Kirim respons error
-            res.status(statusCode).json({
-                status: false,
-                creator: creatorName, // Ditambahkan
-                message: message
-            });
-        }
-    });
+      const type = await fileTypeFromBuffer(file.data);
+      const ext = type?.ext || 'jpg';
 
-    // Tambahkan rute lain di sini...
+      const upscaledUrl = await upscaleImage(file.data, `upload.${ext}`);
+      const finalImage = await axios.get(upscaledUrl, { responseType: 'arraybuffer' });
 
+      res.setHeader('Content-Type', finalImage.headers['content-type']);
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.setHeader('Content-Disposition', 'inline; filename="upscaled.' + ext + '"');
+      return res.send(finalImage.data);
+    } catch (e) {
+      console.error("[Upscale Error]", e);
+      return res.status(500).json({
+        status: false,
+        creator: CREATOR_NAME,
+        message: e.message || "Terjadi kesalahan saat proses upscale."
+      });
+    }
+  });
 };
