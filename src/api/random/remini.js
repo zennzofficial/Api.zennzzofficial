@@ -4,8 +4,8 @@ const CREATOR_NAME = "ZenzzXD";
 
 async function forwardRemini(url) {
   try {
-    const target = `https://zenzzx-api.vercel.app/tools/remini?url=${encodeURIComponent(url)}`;
-    const response = await axios.get(target, { timeout: 30000 });
+    const target = `https://zenzzx-api.vercel.app/tools/remini`;
+    const response = await axios.post(target, { url }, { timeout: 60000 });
 
     if (response.status !== 200 || !response.data || response.data.status !== true) {
       return {
