@@ -206,14 +206,16 @@
       "name": "Tools",
       "items": [
         {
-          "name": "Remini (Image Enhancer)",
-          "desc": "Upscale / HD-kan gambar.",
-          "path": "/tools/remini?url=",
-          "status": "ready",
-          "params": {
-            "url": "URL gambar yang ingin di-HD-kan"
-          }
-        },
+  "name": "Remini (Image Enhancer)",
+  "desc": "Upscale / HD-kan gambar.",
+  "path": "/image/upscale",
+  "method": "POST",
+  "status": "ready",
+  "params": {
+    "image": "File gambar yang ingin di-HD-kan (form-data field 'image')"
+  },
+  "response_note": "Mengembalikan gambar langsung dalam format image/jpeg/png."
+        }, 
         {
           "name": "Jarak",
           "desc": "Menghitung jarak dan estimasi waktu tempuh antara dua kota.",
