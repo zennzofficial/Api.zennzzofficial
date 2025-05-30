@@ -1,22 +1,15 @@
 {
-  "name": "rynn-ui",
+  "name": "zenz-api-vercel",
   "version": "1.0.0",
-  "description": "A simple and customizable API documentation interface built with Express.js.",
-  "main": "index.js",
   "type": "commonjs",
-  "scripts": {
-    "start": "node --no-deprecation index.js"
-  },
-  "author": "Rynn",
+  "description": "API deployment for Vercel (serverless functions)",
+  "author": "ZenzXD",
   "license": "MIT",
   "dependencies": {
+    "abort-controller": "^3.0.0",
     "axios": "^1.6.8",
-    "body-parser": "^1.20.3",
-    "chalk": "^4.1.2",
     "cheerio": "^1.0.0-rc.12",
-    "cors": "^2.8.5",
     "crypto-js": "^4.2.0",
-    "express": "^4.19.2",
     "form-data": "^4.0.0",
     "jimp": "^0.22.10",
     "node-fetch": "^2.6.1",
