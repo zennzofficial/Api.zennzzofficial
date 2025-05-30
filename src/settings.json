@@ -129,6 +129,15 @@
           }
         },
         {
+          "name": "Pinterest Downloader",
+          "desc": "Mengunduh media (gambar, video, GIF) dari Pinterest.",
+          "path": "/downloader/pinterest?url=",
+          "status": "ready",
+          "params": {
+            "url": "URL Pinterest (pin, board, atau user)"
+          }
+        }, 
+        {
           "name": "MediaFire Downloader",
           "desc": "Mendownload link dari mediafire.",
           "path": "/downloader/mediafire?url=",
