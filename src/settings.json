@@ -104,6 +104,24 @@
           "params": {
             "q": "Kata kunci pencarian TikTok"
           }
+        },
+        {
+          "name": "Football Club Search (LapangBola)",
+          "desc": "Mencari klub sepak bola dari lapangbola.com.",
+          "path": "/bola/search?q=",
+          "status": "ready",
+          "params": {
+            "q": "Kata kunci nama klub (contoh: persib)"
+          }
+        },
+        {
+          "name": "Football Club Info (LapangBola)",
+          "desc": "Mendapatkan informasi detail klub sepak bola dari URL lapangbola.com.",
+          "path": "/bola/info?url=",
+          "status": "ready",
+          "params": {
+            "url": "URL lengkap klub dari lapangbola.com (didapatkan dari hasil Football Club Search)"
+          }
         }
       ]
     },
@@ -129,15 +147,15 @@
           }
         },
         {
-  "name": "Pinterest Downloader",
-  "desc": "Unduh gambar/video dari Pinterest dengan kualitas maksimal.",
-  "path": "/downloader/pinterest?url=",
-  "status": "ready",
-  "params": {
-    "url": "URL Pinterest"
-  },
-  "response_note": "Hasil berupa array dengan tag, kualitas, dan direct link."
-        }, 
+          "name": "Pinterest Downloader",
+          "desc": "Unduh gambar/video dari Pinterest dengan kualitas maksimal.",
+          "path": "/downloader/pinterest?url=",
+          "status": "ready",
+          "params": {
+            "url": "URL Pinterest"
+          },
+          "response_note": "Hasil berupa array dengan tag, kualitas, dan direct link."
+        },
         {
           "name": "MediaFire Downloader",
           "desc": "Mendownload link dari mediafire.",
