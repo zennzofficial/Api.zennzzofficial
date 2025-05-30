@@ -129,13 +129,14 @@
           }
         },
         {
-          "name": "Pinterest Downloader",
-          "desc": "Mengunduh media (gambar, video, GIF) dari Pinterest.",
-          "path": "/downloader/pinterest?url=",
-          "status": "ready",
-          "params": {
-            "url": "URL Pinterest (pin, board, atau user)"
-          }
+  "name": "Pinterest Downloader V2",
+  "desc": "Versi lanjutan untuk unduh gambar/video dari Pinterest dengan kualitas maksimal.",
+  "path": "/downloader/pinterest?url=",
+  "status": "ready",
+  "params": {
+    "url": "URL Pinterest (pin, board, atau user)"
+  },
+  "response_note": "Hasil berupa array dengan tag, kualitas, dan direct link."
         }, 
         {
           "name": "MediaFire Downloader",
