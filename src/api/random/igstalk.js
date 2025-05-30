@@ -1,25 +1,18 @@
-const express = require('express');
+const express = require('express'); // Diperlukan jika Anda membuat instance router baru, tapi tidak jika hanya app.get
 const axios = require("axios");
 const qs = require("qs");
 
-// --- Konstanta dan Fungsi Logika Inti (sebelumnya di instagramStalkerService.js) ---
+// --- Konstanta dan Fungsi Logika Inti ---
+const CREATOR_NAME = "ZenzzXD";
 
-const CREATOR_NAME = "ZenzzXD"; // Nama kreator Anda
-
-// User-Agent yang lebih umum
 const COMMON_USER_AGENT = 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36';
 const UPSTREAM_API_URL = 'https://app.mailcamplly.com/api/instagram-profile';
 const UPSTREAM_REFERER = 'https://bitchipdigital.com/tools/social-media/instagram-profile-viewer/';
-const REQUEST_TIMEOUT = 20000; // Timeout 20 detik
+const REQUEST_TIMEOUT = 20000;
 
-/**
- * Mengambil data profil Instagram dari layanan pihak ketiga.
- * @param {string} username - Username Instagram (tanpa @).
- * @returns {Promise<object>} Data profil atau akan melempar error jika gagal.
- */
 async function stalkInstagramProfile(username) {
   if (!username) {
-    throw new Error("Username tidak boleh kosong."); // Error ini akan ditangkap oleh route handler
+    throw new Error("Username tidak boleh kosong.");
   }
 
   const requestData = qs.stringify({ url: `@${username.trim()}` });
@@ -62,72 +55,60 @@ async function stalkInstagramProfile(username) {
   }
 }
 
-// --- Definisi Router Express ---
-const router = express.Router();
+// --- Mendaftarkan Rute ke Instance Aplikasi Express ---
+module.exports = function (app) {
+  // Tidak perlu 'const router = express.Router();' lagi di sini
+  // Langsung gunakan 'app' yang dioperkan
 
-router.get('/stalker/instagram', async (req, res) => {
-  const { username } = req.query;
+  app.get('/stalker/instagram', async (req, res) => {
+    // Path ini akan menjadi HOST/stalker/instagram jika file ini di-require langsung di app.js
+    // Jika Anda ingin prefix /api, Anda bisa menuliskannya di sini: app.get('/api/stalker/instagram', ...)
+    // atau mengaturnya di app.js sebelum me-require file ini jika menggunakan base router.
+    // Untuk pola ini, biasanya path lengkap ditulis di sini atau prefix diatur saat pemanggilan.
 
-  if (!username) {
-    return res.status(400).json({
-      status: false,
-      creator: CREATOR_NAME,
-      message: "Parameter 'username' wajib diisi."
-    });
-  }
+    const { username } = req.query;
 
-  try {
-    console.log(`[API /stalker/instagram] Menerima permintaan untuk username: ${username}`);
-    const profileData = await stalkInstagramProfile(username);
-    
-    res.json({
-      status: true,
-      creator: CREATOR_NAME,
-      result: profileData 
-    });
-
-  } catch (error) {
-    console.error(`[API /stalker/instagram] Error: ${error.message}`);
-    let statusCode = 500;
-    let message = error.message || "Terjadi kesalahan internal server.";
-
-    if (error.message.includes("pihak ketiga") || error.message.includes("upstream") || error.message.includes("Timeout")) {
-        statusCode = 502; // Bad Gateway atau Gateway Timeout
-        if (error.message.toLowerCase().includes("timeout")) {
-            statusCode = 504; // Gateway Timeout spesifik
-        }
-    } else if (error.message.includes("Username tidak boleh kosong")) {
-        statusCode = 400;
+    if (!username) {
+      return res.status(400).json({
+        status: false,
+        creator: CREATOR_NAME,
+        message: "Parameter 'username' wajib diisi."
+      });
     }
 
-    res.status(statusCode).json({
-      status: false,
-      creator: CREATOR_NAME,
-      message: message
-    });
-  }
-});
+    try {
+      console.log(`[API /stalker/instagram] Menerima permintaan untuk username: ${username}`);
+      const profileData = await stalkInstagramProfile(username);
+      
+      res.json({
+        status: true,
+        creator: CREATOR_NAME,
+        result: profileData 
+      });
 
-// Jika Anda memiliki endpoint stalker lain, bisa ditambahkan di sini
-// router.get('/stalker/tiktok', async (req, res) => { ... });
+    } catch (error) {
+      console.error(`[API /stalker/instagram] Error: ${error.message}`);
+      let statusCode = 500;
+      let message = error.message || "Terjadi kesalahan internal server.";
 
-module.exports = router;
+      if (error.message.includes("pihak ketiga") || error.message.includes("upstream") || error.message.includes("Timeout")) {
+          statusCode = 502;
+          if (error.message.toLowerCase().includes("timeout")) {
+              statusCode = 504;
+          }
+      } else if (error.message.includes("Username tidak boleh kosong")) {
+          statusCode = 400;
+      }
 
-// Untuk menguji jika file ini dijalankan langsung (opsional)
-/*
-if (require.main === module) {
-  const app = express();
-  const PORT = process.env.PORT || 3000;
-  
-  // Middleware untuk parsing body jika ada endpoint POST/PUT di masa depan
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
-
-  app.use('/api', router); // Gunakan router dengan prefix /api
-  
-  app.listen(PORT, () => {
-    console.log(`Server uji coba (Stalker API) berjalan di http://localhost:${PORT}`);
-    console.log(`Coba endpoint: http://localhost:${PORT}/api/stalker/instagram?username=instagram`);
+      res.status(statusCode).json({
+        status: false,
+        creator: CREATOR_NAME,
+        message: message
+      });
+    }
   });
-}
-*/
+
+  // Jika Anda memiliki endpoint stalker lain, tambahkan sebagai app.get, app.post, dll. di sini
+  // Contoh:
+  // app.get('/stalker/tiktok', async (req, res) => { /* ... logika tiktok stalker ... */ });
+};
