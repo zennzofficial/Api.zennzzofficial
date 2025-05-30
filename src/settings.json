@@ -129,12 +129,12 @@
           }
         },
         {
-  "name": "Pinterest Downloader V2",
-  "desc": "Versi lanjutan untuk unduh gambar/video dari Pinterest dengan kualitas maksimal.",
+  "name": "Pinterest Downloader",
+  "desc": "Unduh gambar/video dari Pinterest dengan kualitas maksimal.",
   "path": "/downloader/pinterest?url=",
   "status": "ready",
   "params": {
-    "url": "URL Pinterest (pin, board, atau user)"
+    "url": "URL Pinterest"
   },
   "response_note": "Hasil berupa array dengan tag, kualitas, dan direct link."
         }, 
