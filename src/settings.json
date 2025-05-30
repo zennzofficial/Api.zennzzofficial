@@ -188,7 +188,18 @@
             "emoji1": "Emoji pertama (contoh: 😀)",
             "emoji2": "Emoji kedua (contoh: 😭)"
           }
+        }, 
+                {
+          "name": "Brat",
+          "desc": "Membuat brat anomani.",
+          "path": "/maker/brat?text=",
+          "status": "ready",
+          "params": {
+            "text": "Teks yang akan ditampilkan di gambar"
+          },
+          "response_note": "Mengembalikan gambar PNG secara langsung."
         }
+
       ]
     },
     {
