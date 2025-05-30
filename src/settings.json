@@ -207,14 +207,14 @@
       "items": [
         {
   "name": "Remini (Image Enhancer)",
-  "desc": "Upscale / HD-kan gambar.",
-  "path": "/image/upscale",
-  "method": "POST",
+  "desc": "Upscale / HD-kan gambar secara otomatis menggunakan teknologi AI.",
+  "path": "/tools/remini?url=",
+  "method": "GET",
   "status": "ready",
   "params": {
-    "image": "File gambar yang ingin di-HD-kan (form-data field 'image')"
+    "url": "URL gambar yang ingin di-HD-kan"
   },
-  "response_note": "Mengembalikan gambar langsung dalam format image/jpeg/png."
+  "response_note": "Mengembalikan gambar hasil upscale dalam format image/jpeg atau image/png."
         }, 
         {
           "name": "Jarak",
