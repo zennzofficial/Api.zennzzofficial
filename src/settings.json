@@ -240,15 +240,16 @@
     {
       "name": "Stalker",
       "items": [
-        {
-          "name": "TikTok Stalker",
-          "desc": "Stalk profil TikTok (username saja).",
-          "path": "/stalker/tiktok?username=",
+{
+          "name": "Instagram Stalker",
+          "desc": "Mendapatkan informasi profil Instagram.",
+          "path": "/stalker/instagram?username=",
           "status": "ready",
           "params": {
-            "username": "Username TikTok yang ingin di-stalk"
-          }
-        },
+            "username": "Username Instagram (tanpa @)"
+          },
+          "response_note": "Mengembalikan data profil dalam format JSON. Ketersediaan dan struktur data bergantung pada layanan pihak ketiga."
+}, 
         {
           "name": "TikTok Stalker",
           "desc": "Stalk profil TikTok (username saja).",
