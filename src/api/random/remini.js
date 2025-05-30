@@ -69,25 +69,24 @@ module.exports = function (app) {
         });
       }
 
-      // Download gambar dari URL input
       const downloadRes = await axios.get(imageUrl, { responseType: 'arraybuffer' });
       const buffer = Buffer.from(downloadRes.data);
 
-      // Deteksi tipe file dan ekstensi
       const type = await fileTypeFromBuffer(buffer);
       const ext = type?.ext || 'jpg';
 
-      // Proses upscale dengan API
       const upscaledUrl = await upscaleImage(buffer, `upload.${ext}`);
 
-      // Download hasil gambar upscale
-      const finalImage = await axios.get(upscaledUrl, { responseType: 'arraybuffer' });
-
-      // Kirim gambar hasil upscale langsung ke client
-      res.setHeader('Content-Type', finalImage.headers['content-type']);
-      res.setHeader('Cache-Control', 'public, max-age=86400');
-      res.setHeader('Content-Disposition', `inline; filename="upscaled.${ext}"`);
-      return res.send(finalImage.data);
+      // Kirim URL hasil dalam JSON, bukan gambar langsung
+      return res.json({
+        status: true,
+        creator: CREATOR_NAME,
+        message: "Berhasil meng-upscale gambar.",
+        result: {
+          input_url: imageUrl,
+          output_url: upscaledUrl
+        }
+      });
 
     } catch (e) {
       console.error("[Upscale Error]", e);
