@@ -71,13 +71,11 @@ module.exports = function (app) {
 
       const downloadRes = await axios.get(imageUrl, { responseType: 'arraybuffer' });
       const buffer = Buffer.from(downloadRes.data);
-
       const type = await fileTypeFromBuffer(buffer);
       const ext = type?.ext || 'jpg';
 
       const upscaledUrl = await upscaleImage(buffer, `upload.${ext}`);
 
-      // Kirim URL hasil dalam JSON, bukan gambar langsung
       return res.json({
         status: true,
         creator: CREATOR_NAME,
