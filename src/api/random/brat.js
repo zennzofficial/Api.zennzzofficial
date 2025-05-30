@@ -1,9 +1,10 @@
 const express = require('express');
-const fetch = require('node-fetch'); // Pastikan node-fetch v2 terinstal untuk opsi timeout, atau gunakan AbortController untuk v3+
+const fetch = require('node-fetch');
+const AbortController = require('abort-controller');
 const router = express.Router();
 
-const CREATOR_NAME = "ZenzXD"; // Sesuaikan dengan nama kreator di API Anda
-const FETCH_TIMEOUT = 15000; // Timeout untuk request ke API eksternal dalam milidetik (misal, 15 detik)
+const CREATOR_NAME = "ZenzXD";
+const FETCH_TIMEOUT = 15000;
 
 router.get('/maker/brat', async (req, res) => {
   try {
@@ -17,59 +18,57 @@ router.get('/maker/brat', async (req, res) => {
     }
 
     const apiUrl = `https://api.yogik.id/maker/brat?text=${encodeURIComponent(text)}`;
-    console.log(`[Brat Maker] Requesting URL: ${apiUrl}`); // Tambahkan log untuk debugging
+    console.log(`[Brat Maker] Requesting URL: ${apiUrl}`);
 
-    const response = await fetch(apiUrl, { timeout: FETCH_TIMEOUT }); // Menambahkan timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
+    const response = await fetch(apiUrl, { signal: controller.signal });
+    clearTimeout(timeout);
 
     if (!response.ok) {
-      // Mencoba membaca pesan error dari API eksternal jika ada (opsional)
       let errorBody = null;
       try {
-        // Jika API eksternal mengembalikan JSON error, kita bisa coba parse
         if (response.headers.get('content-type')?.includes('application/json')) {
-            errorBody = await response.json();
+          errorBody = await response.json();
         }
-      } catch (parseError) {
-        // Abaikan jika body error bukan JSON atau tidak bisa diparse
-        console.warn("[Brat Maker] Gagal memparse body error dari API eksternal:", parseError.message);
-      }
-      
-      console.error(`[Brat Maker] Gagal fetch dari API eksternal. Status: ${response.status}, Pesan: ${errorBody ? JSON.stringify(errorBody) : response.statusText}`);
+      } catch {}
+
+      console.error(`[Brat Maker] Gagal fetch dari API eksternal. Status: ${response.status}`);
       return res.status(response.status).json({
         status: false,
         creator: CREATOR_NAME,
-        message: `Gagal mengambil gambar dari API eksternal. Status: ${response.status}${errorBody && errorBody.message ? `. Pesan: ${errorBody.message}` : ''}`
+        message: `Gagal mengambil gambar dari API eksternal. Status: ${response.status}${errorBody?.message ? `. Pesan: ${errorBody.message}` : ''}`
       });
     }
 
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.startsWith('image/')) {
-        console.error(`[Brat Maker] Respons dari API eksternal bukan gambar. Content-Type: ${contentType}`);
-        return res.status(502).json({ // 502 Bad Gateway, karena upstream service tidak sesuai harapan
-            status: false,
-            creator: CREATOR_NAME,
-            message: 'Respons dari API eksternal bukan gambar yang valid.'
-        });
+      return res.status(502).json({
+        status: false,
+        creator: CREATOR_NAME,
+        message: 'Respons dari API eksternal bukan gambar yang valid.'
+      });
     }
-    
+
     res.set('Content-Type', contentType);
-    response.body.pipe(res);
+    res.set('Cache-Control', 'public, max-age=86400');
+    response.body.pipe(res).on('error', (err) => {
+      console.error("[Brat Maker] Stream error:", err.message);
+      res.status(500).json({
+        status: false,
+        creator: CREATOR_NAME,
+        message: 'Gagal mengirim gambar ke klien.'
+      });
+    });
 
   } catch (err) {
     console.error("[Brat Maker] Error:", err);
-    let errorMessage = 'Terjadi kesalahan internal pada server.';
-    if (err.type === 'request-timeout') { // Spesifik untuk timeout dari node-fetch
-        errorMessage = 'Permintaan ke API eksternal timeout.';
-        return res.status(504).json({ // 504 Gateway Timeout
-            status: false,
-            creator: CREATOR_NAME,
-            message: errorMessage
-        });
-    }
-    res.status(500).json({
+    const isTimeout = err.name === 'AbortError' || err.type === 'request-timeout';
+    return res.status(isTimeout ? 504 : 500).json({
       status: false,
       creator: CREATOR_NAME,
-      message: err.message || errorMessage // Menggunakan pesan error asli jika ada
+      message: isTimeout ? 'Permintaan ke API eksternal timeout.' : err.message || 'Terjadi kesalahan internal.'
     });
   }
 });
