@@ -1,55 +1,58 @@
 const axios = require("axios");
-const qs = require("qs");
+const cheerio = require("cheerio");
 
 const CREATOR_NAME = "ZenzzXD";
-const COMMON_USER_AGENT = 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36';
-const UPSTREAM_API_URL = 'https://app.mailcamplly.com/api/instagram-profile';
-const UPSTREAM_REFERER = 'https://bitchipdigital.com/tools/social-media/instagram-profile-viewer/';
-const REQUEST_TIMEOUT = 20000;
 
-async function stalkInstagramProfile(username) {
-  if (!username) {
-    throw new Error("Parameter 'username' tidak boleh kosong.");
-  }
-
-  const requestData = qs.stringify({ url: `@${username.trim()}` });
-
+// --- Fungsi utama scraping dari insta-stories-viewer.com ---
+async function igstalk(username) {
   try {
-    const response = await axios({
-      method: 'POST',
-      url: UPSTREAM_API_URL,
+    const baseurl = "https://insta-stories-viewer.com";
+    const url = `${baseurl}/${username}/`;
+    const { data: html } = await axios.get(url, {
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': '*/*',
-        'User-Agent': COMMON_USER_AGENT,
-        'Referer': UPSTREAM_REFERER
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
       },
-      data: requestData,
-      timeout: REQUEST_TIMEOUT
+      timeout: 15000
     });
 
-    if (response.status === 200 && response.data) {
-      return response.data;
-    } else {
-      throw new Error(`Upstream mengembalikan status ${response.status}, data tidak valid.`);
+    const $ = cheerio.load(html);
+
+    const avatar = $(".profile__avatar-pic").attr("src");
+    const name = $(".profile__nickname").contents().first().text().trim();
+    const posts = $(".profile__stats-posts").text().trim();
+    const followers = $(".profile__stats-followers").text().trim();
+    const following = $(".profile__stats-follows").text().trim();
+    const bio = $(".profile__description").text().trim();
+
+    if (!avatar || !name) {
+      throw new Error("Username tidak ditemukan atau private.");
     }
 
+    return {
+      status: true,
+      creator: CREATOR_NAME,
+      result: {
+        avatar,
+        username: name,
+        posts,
+        followers,
+        following,
+        bio,
+      }
+    };
   } catch (err) {
-    if (err.response) {
-      const status = err.response.status;
-      const detail = err.response.data;
-
-      throw new Error(`Upstream error (status: ${status}): ${typeof detail === 'object' ? JSON.stringify(detail) : detail}`);
-    } else if (err.request) {
-      throw new Error("Tidak ada respons dari server upstream (timeout atau koneksi gagal).");
-    } else {
-      throw new Error(`Kesalahan sistem lokal: ${err.message}`);
-    }
+    return {
+      status: false,
+      creator: CREATOR_NAME,
+      message: err.message || "Terjadi kesalahan saat mengambil data."
+    };
   }
 }
 
+// --- Router Express ---
 module.exports = function (app) {
-  app.get('/stalker/instagram', async (req, res) => {
+  app.get("/stalker/instagram", async (req, res) => {
     const { username } = req.query;
 
     if (!username) {
@@ -60,33 +63,9 @@ module.exports = function (app) {
       });
     }
 
-    try {
-      const result = await stalkInstagramProfile(username);
-      res.status(200).json({
-        status: true,
-        creator: CREATOR_NAME,
-        result
-      });
+    const result = await igstalk(username.trim());
 
-    } catch (error) {
-      console.error("Error [IG Stalk]:", error.message);
-
-      let statusCode = 500;
-      let clientMessage = error.message;
-
-      if (clientMessage.toLowerCase().includes("upstream")) {
-        statusCode = 502;
-      } else if (clientMessage.toLowerCase().includes("timeout") || clientMessage.toLowerCase().includes("tidak ada respons")) {
-        statusCode = 504;
-      } else if (clientMessage.toLowerCase().includes("parameter")) {
-        statusCode = 400;
-      }
-
-      res.status(statusCode).json({
-        status: false,
-        creator: CREATOR_NAME,
-        message: clientMessage
-      });
-    }
+    const statusCode = result.status ? 200 : 502;
+    res.status(statusCode).json(result);
   });
 };
