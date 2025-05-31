@@ -236,6 +236,16 @@
           }
         },
         {
+  "name": "Genius Lyrics",
+  "desc": "Cari lirik lagu berdasarkan judul atau lirik.",
+  "path": "/tools/genius?query=",
+  "status": "ready",
+  "params": {
+    "query": "Judul lagu atau lirik (contoh: something just like this)"
+  },
+  "response_note": "Mengembalikan judul, artis, lirik, dan URL lagu dari Genius."
+}, 
+        {
   "name": "Screenshot Website",
   "desc": "Mengambil screenshot dari sebuah halaman website.",
   "path": "/tools/ssweb?url=",
