@@ -6,10 +6,17 @@ const BASE_URL = "https://api.siputzx.my.id/api/s/pinterest?query=";
 async function forwardPinterestSearch(query) {
   try {
     const { data } = await axios.get(BASE_URL + encodeURIComponent(query));
+    let resultData = data.result || data;
+
+    // Jika resultData adalah objek dan ada properti status di dalamnya, hapus properti status
+    if (typeof resultData === "object" && resultData !== null && "status" in resultData) {
+      delete resultData.status;
+    }
+
     return {
       status: true,
       creator: CREATOR_NAME,
-      result: data.result || data,
+      result: resultData,
     };
   } catch (err) {
     return {
