@@ -76,34 +76,46 @@
           "params": {
             "q": "Search query"
           }
-        },
-        {
-          "name": "GSMArena Search",
-          "desc": "Mencari spesifikasi HP di GSMArena.",
-          "path": "/search/gsmarena?phone=",
-          "status": "ready",
-          "params": {
-            "phone": "Nama HP yang ingin dicari (contoh: Samsung S23)"
-          }
-        },
-        {
-          "name": "Cookpad Search",
-          "desc": "Mencari resep masakan di Cookpad beserta detailnya.",
-          "path": "/search/cookpad?q=",
-          "status": "ready",
-          "params": {
-            "q": "Kata kunci resep (contoh: ayam goreng)"
-          }
-        },
-        {
-          "name": "TikTok Search",
-          "desc": "Mencari video di tiktok.",
-          "path": "/search/tiktok?q=",
-          "status": "ready",
-          "params": {
-            "q": "Kata kunci pencarian TikTok"
-          }
         },{
+  "name": "Search Tools",
+  "items": [
+    {
+      "name": "YouTube",
+      "desc": "Video search",
+      "path": "/search/youtube?q=",
+      "status": "ready",
+      "params": {
+        "q": "Search query"
+      }
+    },
+    {
+      "name": "GSMArena Search",
+      "desc": "Mencari spesifikasi HP di GSMArena.",
+      "path": "/search/gsmarena?phone=",
+      "status": "ready",
+      "params": {
+        "phone": "Nama HP yang ingin dicari (contoh: Samsung S23)"
+      }
+    },
+    {
+      "name": "Cookpad Search",
+      "desc": "Mencari resep masakan di Cookpad beserta detailnya.",
+      "path": "/search/cookpad?q=",
+      "status": "ready",
+      "params": {
+        "q": "Kata kunci resep (contoh: ayam goreng)"
+      }
+    },
+    {
+      "name": "TikTok Search",
+      "desc": "Mencari video di tiktok.",
+      "path": "/search/tiktok?q=",
+      "status": "ready",
+      "params": {
+        "q": "Kata kunci pencarian TikTok"
+      }
+    },
+    {
       "name": "Pinterest Search",
       "desc": "Mencari gambar dari Pinterest berdasarkan keyword.",
       "path": "/search/pinterest?q=",
@@ -112,8 +124,19 @@
         "q": "Kata kunci pencarian Pinterest"
       },
       "response_note": "Mengembalikan daftar gambar dari Pinterest dalam array URL."
-        }
-      ]
+    },
+    {
+      "name": "Genius Lyrics Search",
+      "desc": "Mencari lirik lagu dari Genius.com",
+      "path": "/search/geniuslirik?query=",
+      "status": "ready",
+      "params": {
+        "query": "Judul lagu atau potongan lirik untuk dicari"
+      },
+      "response_note": "Mengembalikan judul, artis, thumbnail, dan lirik lengkap dari Genius."
+    }
+  ]
+        
     },
     {
       "name": "Downloader",
