@@ -121,34 +121,37 @@ async function pinterestSearchService(query) {
 // --- Integrasi ke Express App ---
 module.exports = function (app) {
   app.get("/search/pinterest", async (req, res) => {
-    const { query } = req.query; // Menggunakan 'query' agar konsisten dengan fungsi service
+    const { query } = req.query; // <<< Di sini kode mengharapkan parameter bernama 'query'
     if (!query) {
       return res.status(400).json({
         status: false,
-        creator: CREATOR_NAME, // Menggunakan konstanta yang sudah ada
-        message: "Parameter 'query' wajib diisi."
+        creator: CREATOR_NAME,
+        message: "Parameter 'query' wajib diisi." // <<< Pesan error ini yang mungkin Anda lihat jika 'query' kosong
       });
     }
 
     try {
       console.log(`[API /search/pinterest] Menerima query: ${query}`);
-      const searchResult = await pinterestSearchService(query.trim()); // Panggil fungsi service
+      const searchResult = await pinterestSearchService(query.trim());
       res.json({
         status: true,
         creator: CREATOR_NAME,
         total_results: searchResult.length,
-        query: query.trim(),
+        query: query.trim(), // Menggunakan variabel 'query'
         result: searchResult
       });
     } catch (err) {
       console.error(`[API /search/pinterest] Gagal memproses permintaan: ${err.message}`);
       let statusCode = 500; // Default server error
-      // Pemetaan error yang lebih spesifik
       if (err.message.toLowerCase().includes("timeout")) {
         statusCode = 504; // Gateway Timeout
-      } else if (err.message.includes("gagal mengambil cookies") || err.message.includes("struktur respons tidak sesuai") || err.message.includes("pihak ketiga")) {
+      } else if (
+        err.message.includes("gagal mengambil cookies") ||
+        err.message.includes("struktur respons tidak sesuai") ||
+        err.message.includes("pihak ketiga")
+      ) {
         statusCode = 502; // Bad Gateway
-      } else if (err.message.includes("tidak ditemukan")) { // Jika ada error spesifik 'tidak ditemukan' dari service
+      } else if (err.message.includes("tidak ditemukan")) {
         statusCode = 404;
       }
 
