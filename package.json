@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "type": "commonjs",
   "description": "API deployment for Vercel (serverless functions)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
   "author": "ZenzXD",
   "license": "MIT",
   "dependencies": {
@@ -12,10 +17,15 @@
     "cheerio": "^1.0.0-rc.12",
     "crypto-js": "^4.2.0",
     "express": "^4.18.4",
+    "file-type": "^16.5.4",
     "form-data": "^4.0.0",
     "jimp": "^0.22.10",
     "node-fetch": "^2.6.1",
+    "qs": "^6.11.0",
     "tough-cookie": "^4.1.3",
     "yt-search": "^2.10.4"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }
