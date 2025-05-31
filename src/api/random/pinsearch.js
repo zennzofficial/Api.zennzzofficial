@@ -1,58 +1,58 @@
-const cheerio = require("cheerio");
 const axios = require("axios");
+const cheerio = require("cheerio");
 
-const CREATOR_NAME = "ZenzXD";
+const source = 'https://id.pinterest.com/search/pins/?autologin=true&q=';
 
-async function pinterestSearch(query) {
+async function spinterest2(query) {
+  if (!query) {
+    return {
+      status: false,
+      message: "Parameter 'query' wajib diisi"
+    };
+  }
+
   try {
-    const { data } = await axios.get("https://www.pinterest.com/search/pins/", {
-      params: { q: query },
+    const url = source + encodeURIComponent(query);
+    const { data } = await axios.get(url, {
       headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-        "Accept-Language": "en-US,en;q=0.9"
+        cookie: "_auth=1; _b=\"AVna7S1p7l1C5I9u0+nR3YzijpvXOPc6d09SyCzO+DcwpersQH36SmGiYfymBKhZcGg=\"; _pinterest_sess=TWc9PSZHamJOZ0JobUFiSEpSN3Z4a2NsMk9wZ3gxL1NSc2k2NkFLaUw5bVY5cXR5alZHR0gxY2h2MVZDZlNQalNpUUJFRVR5L3NlYy9JZkthekp3bHo5bXFuaFZzVHJFMnkrR3lTbm56U3YvQXBBTW96VUgzVUhuK1Z4VURGKzczUi9hNHdDeTJ5Y2pBTmxhc2owZ2hkSGlDemtUSnYvVXh5dDNkaDN3TjZCTk8ycTdHRHVsOFg2b2NQWCtpOWxqeDNjNkk3cS85MkhhSklSb0hwTnZvZVFyZmJEUllwbG9UVnpCYVNTRzZxOXNJcmduOVc4aURtM3NtRFo3STlmWjJvSjlWTU5ITzg0VUg1NGhOTEZzME9SNFNhVWJRWjRJK3pGMFA4Q3UvcHBnWHdaYXZpa2FUNkx6Z3RNQjEzTFJEOHZoaHRvazc1c1UrYlRuUmdKcDg3ZEY4cjNtZlBLRTRBZjNYK0lPTXZJTzQ5dU8ybDdVS015bWJKT0tjTWYyRlBzclpiamdsNmtpeUZnRjlwVGJXUmdOMXdTUkFHRWloVjBMR0JlTE5YcmhxVHdoNzFHbDZ0YmFHZ1VLQXU1QnpkM1FqUTNMTnhYb3VKeDVGbnhNSkdkNXFSMXQybjRGL3pyZXRLR0ZTc0xHZ0JvbTJCNnAzQzE0cW1WTndIK0trY05HV1gxS09NRktadnFCSDR2YzBoWmRiUGZiWXFQNjcwWmZhaDZQRm1UbzNxc21pV1p5WDlabm1UWGQzanc1SGlrZXB1bDVDWXQvUis3elN2SVFDbm1DSVE5Z0d4YW1sa2hsSkZJb1h0MTFpck5BdDR0d0lZOW1Pa2RDVzNySWpXWmUwOUFhQmFSVUpaOFQ3WlhOQldNMkExeDIvMjZHeXdnNjdMYWdiQUhUSEFBUlhUVTdBMThRRmh1ekJMYWZ2YTJkNlg0cmFCdnU2WEpwcXlPOVZYcGNhNkZDd051S3lGZmo0eHV0ZE42NW8xRm5aRWpoQnNKNnNlSGFad1MzOHNkdWtER0xQTFN5Z3lmRERsZnZWWE5CZEJneVRlMDd2VmNPMjloK0g5eCswZUVJTS9CRkFweHc5RUh6K1JocGN6clc1JmZtL3JhRE1sc0NMTFlpMVErRGtPcllvTGdldz0="
       }
     });
 
     const $ = cheerio.load(data);
-    const result = [];
-
-    $("img").each((_, img) => {
-      let src = $(img).attr("src") || $(img).attr("data-src");
-      if (src && src.includes("pinimg.com")) {
-        // Upgrade resolusi ke 736
-        src = src.replace(/236x|474x/g, "736x");
-        if (!result.includes(src)) result.push(src);
-      }
+    const images = [];
+    $('div > a').each((i, el) => {
+      const src = $(el).find('img').attr('src');
+      if (src) images.push(src.replace(/236/g, '736'));
     });
+
+    if (images.length) images.shift();
 
     return {
       status: true,
-      creator: CREATOR_NAME,
-      result
+      query,
+      images
     };
-
-  } catch (e) {
+  } catch (error) {
     return {
       status: false,
-      creator: CREATOR_NAME,
-      message: "Gagal mencari gambar Pinterest",
-      error: e.message
+      message: "Gagal mengambil data dari Pinterest",
+      error: error.message
     };
   }
 }
 
 module.exports = function (app) {
   app.get("/search/pinterest", async (req, res) => {
-    const { q } = req.query;
-    if (!q) {
+    const { query } = req.query;
+    if (!query) {
       return res.status(400).json({
         status: false,
-        creator: CREATOR_NAME,
-        message: "Parameter 'q' wajib diisi"
+        message: "Parameter 'query' wajib diisi"
       });
     }
 
-    const result = await pinterestSearch(q.trim());
-    res.status(result.status ? 200 : 502).json(result);
+    const result = await spinterest2(query);
+    res.json(result);
   });
 };
