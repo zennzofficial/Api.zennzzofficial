@@ -118,7 +118,7 @@
           "name": "Genius Lyrics Search",
           "desc": "Mencari lirik lagu dari Genius.com",
           "path": "/search/geniuslirik?query=",
-          "status": "ready",
+          "status": "error",
           "params": {
             "query": "Judul lagu atau potongan lirik untuk dicari"
           },
