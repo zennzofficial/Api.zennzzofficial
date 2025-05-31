@@ -263,3 +263,12 @@
           "name": "TikTok Stalker",
           "desc": "Stalk profil TikTok (username saja).",
           "path": "/stalker/tiktok?username=",
+          "status": "ready",
+          "params": {
+            "username": "Username TikTok (tanpa @)"
+          }
+        }
+      ]
+    }
+  ]
+}
