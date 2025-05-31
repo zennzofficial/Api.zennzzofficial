@@ -1,7 +1,7 @@
 {
   "name": "Zennzz-Api UI",
   "version": "v1.0.0",
-  "description": "Simple and easy to use API.",
+  "description": "Simple and easy to use api.",
   "bannerImage": "/src/banner.jpg",
   "header": {
     "status": "Online!"
@@ -89,11 +89,10 @@
         {
           "name": "Cookpad Search",
           "desc": "Mencari resep masakan di Cookpad beserta detailnya.",
-          "path": "/search/cookpad?q=&limit=",
+          "path": "/search/cookpad?q=",
           "status": "ready",
           "params": {
-            "q": "Kata kunci resep (contoh: ayam goreng)",
-            "limit": "Jumlah hasil (opsional, default 5, maks 10)"
+            "q": "Kata kunci resep (contoh: ayam goreng)"
           }
         },
         {
@@ -104,6 +103,16 @@
           "params": {
             "q": "Kata kunci pencarian TikTok"
           }
+        },
+        {
+          "name": "Pinterest Search",
+          "desc": "Mencari gambar dari Pinterest berdasarkan keyword.",
+          "path": "/search/pinterest?q=",
+          "status": "ready",
+          "params": {
+            "q": "Kata kunci pencarian Pinterest"
+          },
+          "response_note": "Mengembalikan daftar gambar dari Pinterest dalam array URL."
         }
       ]
     },
@@ -240,16 +249,16 @@
     {
       "name": "Stalker",
       "items": [
-{
-  "name": "Instagram Stalker",
-  "desc": "Mendapatkan informasi profil Instagram.",
-  "path": "/stalker/instagram?username=",
-  "status": "ready",
-  "params": {
-    "username": "Username Instagram (tanpa @)"
-  },
-  "response_note": "Mengembalikan data profil dalam format JSON. Ketersediaan dan struktur data bergantung pada layanan pihak ketiga."
-}, 
+        {
+          "name": "Instagram Stalker",
+          "desc": "Mendapatkan informasi profil Instagram.",
+          "path": "/stalker/instagram?username=",
+          "status": "ready",
+          "params": {
+            "username": "Username Instagram (tanpa @)"
+          },
+          "response_note": "Mengembalikan data profil dalam format JSON. Ketersediaan dan struktur data bergantung pada layanan pihak ketiga."
+        },
         {
           "name": "TikTok Stalker",
           "desc": "Stalk profil TikTok (username saja).",
