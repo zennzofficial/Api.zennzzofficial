@@ -103,16 +103,15 @@
           "params": {
             "q": "Kata kunci pencarian TikTok"
           }
-        },
-        {
-          "name": "Pinterest Search",
-          "desc": "Mencari gambar dari Pinterest berdasarkan keyword.",
-          "path": "/search/pinterest?q=",
-          "status": "ready",
-          "params": {
-            "q": "Kata kunci pencarian Pinterest"
-          },
-          "response_note": "Mengembalikan daftar gambar dari Pinterest dalam array URL."
+        },{
+      "name": "Pinterest Search",
+      "desc": "Mencari gambar dari Pinterest berdasarkan keyword.",
+      "path": "/search/pinterest?q=",
+      "status": "ready",
+      "params": {
+        "q": "Kata kunci pencarian Pinterest"
+      },
+      "response_note": "Mengembalikan daftar gambar dari Pinterest dalam array URL."
         }
       ]
     },
