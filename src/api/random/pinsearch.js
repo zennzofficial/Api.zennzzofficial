@@ -1,121 +1,153 @@
-const cheerio = require("cheerio");
-const axios = require("axios");
+const axios = require('axios');
 
 const CREATOR_NAME = "ZenzXD";
-const REQUEST_TIMEOUT = 20000; // Timeout 20 detik
+const REQUEST_TIMEOUT = 25000; // Timeout untuk request (25 detik)
 
-async function pinterestSearch(query) {
-  const searchUrl = "https://www.pinterest.com/search/pins/";
-  console.log(`[PinterestSearch] Mencari untuk query: "${query}" di URL: ${searchUrl}?q=${encodeURIComponent(query)}`);
-
+// --- Fungsi Helper ---
+async function getCookies() {
+  console.log("[Pinterest Service] Mencoba mengambil cookies...");
   try {
-    const { data } = await axios.get(searchUrl, {
-      params: { q: query }, // Axios akan otomatis encode
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-        "Accept-Language": "en-US,en;q=0.9,id;q=0.8",
-        "Referer": "https://www.google.com/"
-      },
-      timeout: REQUEST_TIMEOUT
-    });
-
-    // Log sebagian kecil dari HTML untuk diagnosis
-    console.log("[PinterestSearch] Snippet HTML diterima (awal 2KB):", data ? data.substring(0, 2000) : "Data HTML kosong/null");
-    if (!data) {
-        throw new Error("Tidak ada data HTML yang diterima dari Pinterest.");
+    const response = await axios.get('https://www.pinterest.com/csrf_error/', { timeout: REQUEST_TIMEOUT });
+    const setCookieHeaders = response.headers['set-cookie'];
+    if (setCookieHeaders && setCookieHeaders.length > 0) {
+      const cookies = setCookieHeaders.map(cookieString => cookieString.split(';')[0].trim());
+      const cookieString = cookies.join('; ');
+      console.log("[Pinterest Service] Cookies berhasil diambil.");
+      return cookieString;
+    } else {
+      console.warn('[Pinterest Service] Tidak ada header set-cookie yang ditemukan.');
+      throw new Error('Gagal mengambil cookies dari Pinterest (tidak ada set-cookie).');
     }
-
-    const $ = cheerio.load(data);
-    const results = new Set();
-
-    // Mencoba beberapa selector umum untuk pin dan gambar di dalamnya
-    // Sesuaikan selector ini jika struktur Pinterest berubah
-    $('div[data-test-id="pin"] img, div[data-test-id="pin-visual-wrapper"] img, div[role="listitem"] img, img').each((_, imgElement) => {
-      const img = $(imgElement);
-      let src = img.attr("src") || img.attr("data-src"); // Prioritaskan src, lalu data-src
-
-      // Terkadang URL ada di srcset, ambil yang terbesar jika ada
-      const srcset = img.attr("srcset");
-      if (!src && srcset) {
-        const sources = srcset.split(',').map(s => {
-          const parts = s.trim().split(' ');
-          return { url: parts[0], width: parseInt(parts[1]?.replace('w', ''), 10) || 0 };
-        });
-        if (sources.length > 0) {
-          sources.sort((a, b) => b.width - a.width); // Urutkan dari lebar terbesar
-          src = sources[0].url;
-        }
-      }
-      
-      if (src && typeof src === 'string' && src.includes("i.pinimg.com")) {
-        // Logika upgrade resolusi yang lebih hati-hati
-        let upgradedSrc = src;
-        if (src.includes('/150x150/')) { // Resolusi sangat kecil, coba upgrade signifikan
-            upgradedSrc = src.replace(/\/[0-9a-zA-Z]+x([0-9a-zA-Z_]*)?\//, '/originals/');
-        } else {
-            upgradedSrc = src.replace(/\/[0-9a-zA-Z]+x([0-9a-zA-Z_]*)?\//, '/736x/');
-        }
-
-        // Fallback jika replace ke originals/736x menghilangkan i.pinimg.com atau gagal total
-        if (!upgradedSrc.includes("i.pinimg.com") || upgradedSrc === src.replace(/\/[0-9a-zA-Z]+x([0-9a-zA-Z_]*)?\//, '/originals/') && upgradedSrc === src.replace(/\/[0-9a-zA-Z]+x([0-9a-zA-Z_]*)?\//, '/736x/')) {
-             upgradedSrc = src.replace(/236x|474x|564x/g, "736x"); // Metode lama yang lebih aman
-        }
-        results.add(upgradedSrc);
-      }
-    });
-    
-    const uniqueResults = Array.from(results);
-    console.log(`[PinterestSearch] Ditemukan ${uniqueResults.length} gambar (setelah filter & upgrade) untuk query "${query}".`);
-
-    if (uniqueResults.length === 0) {
-        console.warn(`[PinterestSearch] Tidak ada gambar ditemukan untuk "${query}". Periksa snippet HTML di log. Mungkin halaman berubah, tidak ada hasil, atau perlu login/CAPTCHA.`);
+  } catch (error) {
+    console.error('[Pinterest Service] Error saat mengambil cookies:', error.message);
+    if (error.code === 'ECONNABORTED' || error.message.toLowerCase().includes('timeout')) {
+        throw new Error(`Timeout saat mengambil cookies dari Pinterest: ${error.message}`);
     }
-
-    return {
-      status: true,
-      creator: CREATOR_NAME,
-      result: uniqueResults
-    };
-
-  } catch (e) {
-    console.error("[PinterestSearch] Terjadi Error:", e.message);
-    if (e.response) {
-        console.error("[PinterestSearch] Axios Error Status:", e.response.status);
-    }
-    
-    let errorMessage = "Gagal mencari gambar di Pinterest.";
-    if (e.isAxiosError && e.message.toLowerCase().includes('timeout')) {
-        errorMessage = "Timeout saat menghubungi Pinterest.";
-    } else if (e.message) {
-        // Jangan sertakan seluruh e.message jika terlalu teknis untuk klien
-        errorMessage = e.message.startsWith("Tidak ada data HTML") ? e.message : "Terjadi masalah saat mengambil data dari Pinterest.";
-    }
-
-    return {
-      status: false,
-      creator: CREATOR_NAME,
-      message: errorMessage
-    };
+    throw new Error(`Gagal mengambil cookies dari Pinterest: ${error.message}`);
   }
 }
 
-// --- Integrasi ke Express App ---
-module.exports = function (app) {
-  app.get("/search/pinterest", async (req, res) => {
-    const { q } = req.query;
-    if (!q) {
-      return res.status(400).json({
-        status: false,
-        creator: CREATOR_NAME,
-        message: "Parameter query 'q' wajib diisi."
-      });
-    }
+// --- Fungsi Service Utama untuk Pencarian ---
+async function pinterestSearchAPI(query) {
+    console.log(`[Pinterest Search Service] Mencari query: "${query}"`);
+    const cookies = await getCookies(); // Jika ini gagal, error akan dilempar dan ditangkap oleh route handler
 
-    console.log(`[API /search/pinterest] Menerima permintaan untuk query: ${q}`);
-    const result = await pinterestSearch(q.trim());
-    
-    const httpStatusCode = result.status ? 200 : 502;
-    res.status(httpStatusCode).json(result);
-  });
+    const apiUrl = 'https://www.pinterest.com/resource/BaseSearchResource/get/';
+    const params = {
+        source_url: `/search/pins/?q=${encodeURIComponent(query)}&rs=typed`,
+        data: JSON.stringify({
+            "options": {
+                "isPrefetch": false,
+                "query": query,
+                "scope": "pins",
+                "no_fetch_context_on_resource": false,
+            },
+            "context": {}
+        }),
+        _: Date.now()
+    };
+
+    const headers = {
+        'accept': 'application/json, text/javascript, */*, q=0.01',
+        'accept-encoding': 'gzip, deflate, br',
+        'accept-language': 'en-US,en;q=0.9,id;q=0.8',
+        'cookie': cookies,
+        'referer': `https://www.pinterest.com/search/pins/?q=${encodeURIComponent(query)}`,
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Edg/125.0.0.0',
+        'x-app-version': 'dee1579', // <<< PERHATIAN: Nilai ini sangat mungkin perlu diupdate!
+        'x-pinterest-appstate': 'active',
+        'x-requested-with': 'XMLHttpRequest'
+    };
+
+    console.log(`[Pinterest Search Service] Request ke BaseSearchResource untuk query: "${query}"`);
+    try {
+        const { data } = await axios.get(apiUrl, {
+            headers: headers,
+            params: params, // Axios akan meng-encode params dengan benar
+            timeout: REQUEST_TIMEOUT
+        });
+
+        if (!data || !data.resource_response || !data.resource_response.data || !data.resource_response.data.results) {
+            console.warn('[Pinterest Search Service] Format respons tidak sesuai atau tidak ada hasil:', data);
+            throw new Error('Format respons tidak sesuai atau tidak ada hasil dari Pinterest.');
+        }
+
+        const results = data.resource_response.data.results;
+        const validResults = results.filter(v => v.id && v.images?.orig?.url && v.pinner); 
+        
+        console.log(`[Pinterest Search Service] Ditemukan ${validResults.length} hasil valid untuk query "${query}".`);
+
+        const container = validResults.map((result) => ({
+            id: result.id,
+            title: result.grid_title || result.title || "",
+            // ... (mapping data lainnya seperti yang sudah ada) ...
+            image_original_url: result.images.orig.url,
+            image_736x_url: result.images['736x']?.url || result.images.orig.url,
+            pinner: {
+                username: result.pinner.username,
+                full_name: result.pinner.full_name,
+                avatar_url: result.pinner.image_small_url,
+                profile_url: `https://www.pinterest.com/${result.pinner.username}/`,
+            },
+            source_url: `https://www.pinterest.com/pin/${result.id}/`,
+        }));
+
+        return container;
+    } catch (error) {
+        console.error(`[Pinterest Search Service] Error saat mencari query "${query}":`, error.message);
+        if (error.response) {
+            console.error("[Pinterest Search Service] Response status:", error.response.status);
+            // console.error("[Pinterest Search Service] Response data:", error.response.data); // Hati-hati jika besar
+        }
+        if (error.code === 'ECONNABORTED' || error.message.toLowerCase().includes('timeout')) {
+            throw new Error(`Timeout saat mencari di Pinterest: ${error.message}`);
+        }
+        throw new Error(`Gagal mencari di Pinterest: ${error.message}`);
+    }
+}
+
+// --- Mendaftarkan Rute ke Instance Aplikasi Express ---
+module.exports = function(app) {
+    app.get("/search/pinterest", async (req, res) => {
+      const { q } = req.query;
+      if (!q) {
+        return res.status(400).json({
+          status: false,
+          creator: CREATOR_NAME,
+          message: "Parameter query 'q' wajib diisi."
+        });
+      }
+      try {
+        console.log(`[API /search/pinterest] Menerima permintaan untuk query: ${q}`);
+        const searchResults = await pinterestSearchAPI(q.trim());
+        res.json({
+          status: true,
+          creator: CREATOR_NAME,
+          result: searchResults
+        });
+      } catch (error) {
+        console.error(`[API /search/pinterest] Error: ${error.message}`);
+        let statusCode = 500;
+        let message = error.message || "Terjadi kesalahan internal server.";
+
+        if (error.message.toLowerCase().includes("timeout")) statusCode = 504;
+        else if (error.message.includes("gagal mengambil cookies") || error.message.includes("pihak ketiga") || error.message.includes("respons tidak sesuai")) statusCode = 502;
+        else if (error.message.includes("tidak ditemukan")) statusCode = 404;
+        
+        res.status(statusCode).json({
+          status: false,
+          creator: CREATOR_NAME,
+          message: message
+        });
+      }
+    });
+
+    // Anda bisa menghapus atau mengomentari endpoint /downloader/pinterest jika fokus hanya pada search
+    // Atau biarkan jika Anda juga membutuhkannya. Kode pindlService dan isPin akan tetap ada di file ini.
+    /*
+    const { pindlService } = require('./nama_file_ini_jika_dipisah'); // Jika dipisah
+    app.get("/downloader/pinterest", async (req, res) => {
+        // ... (kode untuk downloader/pinterest seperti sebelumnya)
+    });
+    */
 };
