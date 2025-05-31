@@ -138,6 +138,16 @@
           }
         },
         {
+  "name": "Spotify Downloader",
+  "desc": "Download metadata dan audio dari Spotify track.",
+  "path": "/downloader/spotify?url=",
+  "status": "ready",
+  "params": {
+    "url": "URL lagu Spotify (contoh: https://open.spotify.com/track/...)"
+  },
+  "response_note": "Mengembalikan judul lagu, artis, album, durasi, gambar, dan link unduhan dari Spotify."
+}, 
+        {
           "name": "Pinterest Downloader",
           "desc": "Unduh gambar/video dari Pinterest dengan kualitas maksimal.",
           "path": "/downloader/pinterest?url=",
