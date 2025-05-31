@@ -5,13 +5,30 @@ const axios = require("axios");
 
 const CREATOR_NAME = "ZenzzXD";
 
+module.exports = function (app) {
+  app.get("/stalker/instagram", async (req, res) => {
+    const { username } = req.query;
+
+    if (!username) {
+      return res.status(400).json({
+        status: false,
+        creator: CREATOR_NAME,
+        message: "Parameter 'username' wajib diisi."
+      });
+    }
+
+    const result = await igStoryScraper(username.trim());
+    res.status(result.status ? 200 : 502).json(result);
+  });
+};
+
 async function igStoryScraper(username) {
   const urlMain = `https://instasaved.net/id/save-stories/${username}`;
   const jar = new CookieJar();
   const client = wrapper(axios.create({ jar }));
 
   const headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "User-Agent": "Mozilla/5.0",
     "accept-language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7"
   };
 
@@ -86,21 +103,4 @@ async function igStoryScraper(username) {
       message: typeof err === "string" ? err : (err.response?.data || err.message || "Gagal scrape.")
     };
   }
-}
-
-module.exports = function (app) {
-  app.get("/stalker/instagram", async (req, res) => {
-    const { username } = req.query;
-
-    if (!username) {
-      return res.status(400).json({
-        status: false,
-        creator: CREATOR_NAME,
-        message: "Parameter 'username' wajib diisi."
-      });
-    }
-
-    const result = await igStoryScraper(username.trim());
-    res.status(result.status ? 200 : 502).json(result);
-  });
-};
+      }
