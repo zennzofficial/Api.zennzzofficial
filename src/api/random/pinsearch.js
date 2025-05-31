@@ -8,7 +8,12 @@ async function forwardPinterestSearch(query) {
     const { data } = await axios.get(BASE_URL + encodeURIComponent(query));
     let resultData = data.result || data;
 
-    // Jika resultData adalah objek dan ada properti status di dalamnya, hapus properti status
+    // Jika resultData punya properti data yang merupakan array, maka langsung assign array itu ke result
+    if (typeof resultData === "object" && resultData !== null && Array.isArray(resultData.data)) {
+      resultData = resultData.data;
+    }
+
+    // Jika ada properti status dalam resultData (yang sekarang sudah array, kemungkinan tidak), hapus
     if (typeof resultData === "object" && resultData !== null && "status" in resultData) {
       delete resultData.status;
     }
