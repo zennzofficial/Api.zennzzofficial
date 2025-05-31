@@ -10,31 +10,43 @@ const headers = {
 };
 
 async function searchSong(query) {
-  const url = new URL('/search', GENIUS_API_URL);
-  url.searchParams.append('q', query);
-  const response = await axios.get(url.toString(), { headers });
-  return response.data.response.hits;
+  try {
+    const url = new URL('/search', GENIUS_API_URL);
+    url.searchParams.append('q', query);
+    const response = await axios.get(url.toString(), { headers });
+    if (!response.data || !response.data.response || !response.data.response.hits) {
+      throw new Error("Data tidak lengkap dari Genius API");
+    }
+    return response.data.response.hits;
+  } catch (error) {
+    throw new Error(`Gagal mencari lagu: ${error.message}`);
+  }
 }
 
 async function getLyrics(songUrl) {
-  const response = await axios.get(songUrl);
-  const $ = cheerio.load(response.data);
-  let lyrics = '';
-  $('[class^="Lyrics__Container-"]').each((_, element) => {
-    $(element).find('br').replaceWith('\n');
-    lyrics += $(element).html()
-      .replace(/<(?!\/?i>|\/?b>)[^>]+>/g, '')
-      .replace(/&nbsp;/g, ' ') + '\n';
-  });
-  lyrics = lyrics
-    .split('\n')
-    .map(line => line.trim())
-    .filter(line => line !== '')
-    .join('\n')
-    .replace(//g, '\n\n[')
-    .replace(/\n/g, ']\n')
-    .replace(/\n{3,}/g, '\n\n');
-  return lyrics.trim();
+  try {
+    const response = await axios.get(songUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
+      }
+    });
+    const $ = cheerio.load(response.data);
+    let lyrics = '';
+    // Genius menggunakan class dengan pola "Lyrics__Container-"
+    $('[class^="Lyrics__Container-"]').each((_, element) => {
+      $(element).find('br').replaceWith('\n');
+      let section = $(element).text().trim();
+      if(section) lyrics += section + '\n';
+    });
+    lyrics = lyrics
+      .replace(//g, '\n\n[')  // ini simbol aneh dari Genius yang kadang muncul, bisa dihapus atau diganti
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+    if(!lyrics) throw new Error("Lirik kosong, kemungkinan struktur halaman berubah");
+    return lyrics;
+  } catch (error) {
+    throw new Error(`Gagal mengambil lirik: ${error.message}`);
+  }
 }
 
 async function getSongLyrics(query) {
