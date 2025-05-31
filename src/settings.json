@@ -113,16 +113,6 @@
             "q": "Kata kunci pencarian Pinterest"
           },
           "response_note": "Mengembalikan daftar gambar dari Pinterest dalam array URL."
-        },
-        {
-          "name": "Genius Lyrics Search",
-          "desc": "Mencari lirik lagu dari Genius.com",
-          "path": "/search/geniuslirik?query=",
-          "status": "error",
-          "params": {
-            "query": "Judul lagu atau potongan lirik untuk dicari"
-          },
-          "response_note": "Mengembalikan judul, artis, thumbnail, dan lirik lengkap dari Genius."
         }
       ]
     },
