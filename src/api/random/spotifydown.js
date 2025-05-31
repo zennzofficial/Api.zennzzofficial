@@ -1,124 +1,67 @@
 const axios = require("axios");
 
-const spotiDown = {
-  api: {
-    base: "https://parsevideoapi.videosolo.com",
-    endpoints: {
-      info: "/spotify-api/",
-    },
-  },
+async function spotifydl(url) {
+  try {
+    // Request pertama untuk dapatkan gid dan id
+    const kemii = await axios.get(
+      `https://api.fabdl.com/spotify/get?url=${encodeURIComponent(url)}`,
+      {
+        headers: {
+          accept: "application/json, text/plain, */*",
+          "accept-language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
+          "sec-ch-ua": '"Not)A;Brand";v="24", "Chromium";v="116"',
+          "sec-ch-ua-mobile": "?1",
+          "sec-ch-ua-platform": '"Android"',
+          "sec-fetch-dest": "empty",
+          "sec-fetch-mode": "cors",
+          "sec-fetch-site": "cross-site",
+          Referer: "https://spotifydownload.org/",
+          "Referrer-Policy": "strict-origin-when-cross-origin",
+        },
+      }
+    );
 
-  headers: {
-    authority: "parsevideoapi.videosolo.com",
-    "user-agent": "Postify/1.0.0",
-    referer: "https://spotidown.online/",
-    origin: "https://spotidown.online",
-  },
-
-  extractId: (url) => {
-    const patterns = [
-      /spotify\.com\/track\/([a-zA-Z0-9]{22})/,
-      /spotify:track:([a-zA-Z0-9]{22})/,
-      /^([a-zA-Z0-9]{22})$/,
-    ];
-    for (const regex of patterns) {
-      const match = url.match(regex);
-      if (match) return match[1];
+    if (!kemii.data || !kemii.data.result) {
+      throw new Error("Data dari API tidak ditemukan.");
     }
-    return null;
-  },
 
-  isUrl: (url) => {
-    const trackId = spotiDown.extractId(url);
+    // Request kedua untuk dapatkan link download
+    const kemi = await axios.get(
+      `https://api.fabdl.com/spotify/mp3-convert-task/${kemii.data.result.gid}/${kemii.data.result.id}`,
+      {
+        headers: {
+          accept: "application/json, text/plain, */*",
+          "accept-language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
+          "sec-ch-ua": '"Not)A;Brand";v="24", "Chromium";v="116"',
+          "sec-ch-ua-mobile": "?1",
+          "sec-ch-ua-platform": '"Android"',
+          "sec-fetch-dest": "empty",
+          "sec-fetch-mode": "cors",
+          "sec-fetch-site": "cross-site",
+          Referer: "https://spotifydownload.org/",
+          "Referrer-Policy": "strict-origin-when-cross-origin",
+        },
+      }
+    );
+
+    if (!kemi.data || !kemi.data.result) {
+      throw new Error("Data konversi tidak ditemukan.");
+    }
+
     return {
-      valid: !!trackId,
-      error: !url
-        ? "Linknya mananya anjirr? Lu mau download apa kagak sih? kosong gini inputnya 🗿"
-        : !trackId
-        ? "Format linknya kagak valid bree 😑"
-        : null,
-      url: url?.trim(),
-      trackId,
+      success: true,
+      title: kemii.data.result.name || "Unknown Title",
+      type: kemii.data.result.type || "Unknown Type",
+      artist: kemii.data.result.artists || "Unknown Artist",
+      duration: kemii.data.result.duration_ms || 0,
+      image: kemii.data.result.image || null,
+      download: "https://api.fabdl.com" + (kemi.data.result.download_url || ""),
     };
-  },
+  } catch (error) {
+    throw new Error("Gagal mengambil data dari link Spotify: " + error.message);
+  }
+}
 
-  download: async (url) => {
-    const validation = spotiDown.isUrl(url);
-    if (!validation.valid) {
-      return {
-        status: false,
-        code: 400,
-        creator: "ZenzzXD",
-        result: { error: validation.error },
-      };
-    }
-
-    try {
-      const link =
-        validation.trackId.length === 22 &&
-        !url.includes("spotify.com")
-          ? `https://open.spotify.com/track/${validation.trackId}`
-          : validation.url;
-
-      const response = await axios.post(
-        `${spotiDown.api.base}${spotiDown.api.endpoints.info}`,
-        { format: "web", url: link },
-        { headers: spotiDown.headers }
-      );
-
-      if (response.data.status === "-4") {
-        return {
-          status: false,
-          code: 400,
-          creator: "ZenzzXD",
-          result: {
-            error:
-              "Linknya kagak valid bree, cuman bisa download track doang euy 😂",
-          },
-        };
-      }
-
-      const { metadata } = response.data.data;
-      if (!metadata || Object.keys(metadata).length === 0) {
-        return {
-          status: false,
-          code: 404,
-          creator: "ZenzzXD",
-          result: {
-            error:
-              "Metadata tracknya kosong bree, ganti link yang lain aja yak..",
-          },
-        };
-      }
-
-      return {
-        status: true,
-        code: 200,
-        creator: "ZenzzXD",
-        result: {
-          title: metadata.name,
-          artist: metadata.artist,
-          album: metadata.album,
-          duration: metadata.duration,
-          image: metadata.image,
-          download: metadata.download,
-          trackId: validation.trackId,
-        },
-      };
-    } catch (error) {
-      return {
-        status: false,
-        code: error.response?.status || 500,
-        creator: "ZenzzXD",
-        result: {
-          error: "Kagak bisa ambil data metadatanya bree 🙈",
-        },
-      };
-    }
-  },
-};
-
-// 🔁 ROUTE EXPRESS
 module.exports = function (app) {
   app.get("/downloader/spotify", async (req, res) => {
     const { url } = req.query;
@@ -126,11 +69,23 @@ module.exports = function (app) {
       return res.status(400).json({
         status: false,
         creator: "ZenzzXD",
-        message: "Parameter 'url' wajib diisi",
+        error: "Parameter 'url' wajib diisi.",
       });
     }
 
-    const result = await spotiDown.download(url);
-    return res.status(result.code || 500).json(result);
+    try {
+      const data = await spotifydl(url);
+      res.json({
+        status: true,
+        creator: "ZenzzXD",
+        data,
+      });
+    } catch (error) {
+      res.status(500).json({
+        status: false,
+        creator: "ZenzzXD",
+        error: error.message || "Internal Server Error",
+      });
+    }
   });
 };
