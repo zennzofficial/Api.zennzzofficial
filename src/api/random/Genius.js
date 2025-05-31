@@ -6,7 +6,7 @@ const GENIUS_ACCESS_TOKEN = 'L0BY-i4ZVi0wQ53vlvm2zucqjHTuLbHv--YgjxJoN0spnEIhb5s
 
 const headers = {
   Authorization: `Bearer ${GENIUS_ACCESS_TOKEN}`,
-  'User-Agent': 'apitester.org Android/7.5(641)'
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
 };
 
 async function searchSong(query) {
@@ -14,46 +14,48 @@ async function searchSong(query) {
     const url = new URL('/search', GENIUS_API_URL);
     url.searchParams.append('q', query);
     const response = await axios.get(url.toString(), { headers });
-    if (!response.data || !response.data.response || !response.data.response.hits) {
-      throw new Error("Data tidak lengkap dari Genius API");
-    }
     return response.data.response.hits;
-  } catch (error) {
-    throw new Error(`Gagal mencari lagu: ${error.message}`);
+  } catch (err) {
+    throw new Error("Gagal mencari lagu di Genius");
   }
 }
 
 async function getLyrics(songUrl) {
   try {
-    const response = await axios.get(songUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
-      }
-    });
+    const response = await axios.get(songUrl);
     const $ = cheerio.load(response.data);
     let lyrics = '';
-    // Genius menggunakan class dengan pola "Lyrics__Container-"
-    $('[class^="Lyrics__Container-"]').each((_, element) => {
+
+    // Class container baru Genius (CSS modules, berubah-ubah)
+    $('[class^="Lyrics__Container"], .lyrics').each((_, element) => {
       $(element).find('br').replaceWith('\n');
-      let section = $(element).text().trim();
-      if(section) lyrics += section + '\n';
+      let html = $(element).html() || '';
+      let text = html
+        .replace(/<(?!\/?i>|\/?b>)[^>]+>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .trim();
+      lyrics += text + '\n';
     });
+
     lyrics = lyrics
-      .replace(//g, '\n\n[')  // ini simbol aneh dari Genius yang kadang muncul, bisa dihapus atau diganti
-      .replace(/\n{3,}/g, '\n\n')
-      .trim();
-    if(!lyrics) throw new Error("Lirik kosong, kemungkinan struktur halaman berubah");
-    return lyrics;
-  } catch (error) {
-    throw new Error(`Gagal mengambil lirik: ${error.message}`);
+      .split('\n')
+      .map(line => line.trim())
+      .filter(Boolean)
+      .join('\n');
+
+    return lyrics.length > 10 ? lyrics.trim() : 'Lirik tidak ditemukan atau kosong';
+  } catch (err) {
+    throw new Error("Gagal mengambil lirik dari halaman Genius");
   }
 }
 
 async function getSongLyrics(query) {
   const hits = await searchSong(query);
-  if (!hits.length) throw new Error("Lirik tidak ditemukan");
+  if (!hits || !hits.length) throw new Error("Lirik tidak ditemukan");
+
   const song = hits[0].result;
   const lyrics = await getLyrics(song.url);
+
   return {
     title: song.title,
     artist: song.primary_artist.name,
@@ -76,7 +78,6 @@ module.exports = function (app) {
     try {
       const result = await getSongLyrics(query);
       res.json({
-        status: true,
         creator: "ZenzzXD",
         result
       });
