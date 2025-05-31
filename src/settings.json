@@ -241,14 +241,14 @@
       "name": "Stalker",
       "items": [
 {
-          "name": "Instagram Stalker",
-          "desc": "Mendapatkan informasi profil Instagram.",
-          "path": "/stalker/instagram?username=",
-          "status": "ready",
-          "params": {
-            "username": "Username Instagram (tanpa @)"
-          },
-          "response_note": "Mengembalikan data profil dalam format JSON. Ketersediaan dan struktur data bergantung pada layanan pihak ketiga."
+  "name": "Instagram Stalker",
+  "desc": "Mendapatkan informasi profil Instagram.",
+  "path": "/stalker/instagram?username=",
+  "status": "ready",
+  "params": {
+    "username": "Username Instagram (tanpa @)"
+  },
+  "response_note": "Mengembalikan data profil dalam format JSON. Ketersediaan dan struktur data bergantung pada layanan pihak ketiga."
 }, 
         {
           "name": "TikTok Stalker",
