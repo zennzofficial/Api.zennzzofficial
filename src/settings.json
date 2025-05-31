@@ -135,8 +135,7 @@
       },
       "response_note": "Mengembalikan judul, artis, thumbnail, dan lirik lengkap dari Genius."
     }
-  ]
-        
+  ]   
     },
     {
       "name": "Downloader",
