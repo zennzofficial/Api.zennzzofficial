@@ -324,7 +324,7 @@
           "name": "Free Fire Stalker",
           "desc": "Mencari info akun Free Fire berdasarkan UID.",
           "path": "/stalker/freefire?id=",
-          "status": "ready",
+          "status": "error",
           "params": {
             "id": "UID akun Free Fire (misal: 123456789)"
           },
