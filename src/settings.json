@@ -24,6 +24,16 @@
           }
         },
         {
+          "name": "GPT4O AI",
+          "desc": "Berinteraksi dengan GPT4O AI.",
+          "path": "/ai/gpt4o?prompt=",
+          "status": "ready",
+          "params": {
+            "prompt": "Pertanyaan atau prompt untuk GPT4O AI"
+          },
+          "response_note": "Mengembalikan balasan teks dari GPT4O AI."
+        }, 
+        {
           "name": "Blackbox AI",
           "desc": "Bertanya kepada Blackbox AI.",
           "path": "/ai/blackbox?query=",
