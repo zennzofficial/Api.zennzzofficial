@@ -1,18 +1,21 @@
 const axios = require('axios')
 const FormData = require('form-data')
-const { Blob } = require('buffer')
 
 async function upscaler(image) {
   if (!image) throw 'Mana parameter image berupa url/buffer'
+  
   if (image.startsWith('http')) {
     let img = await axios.get(image, {
       responseType: 'arraybuffer'
     })
     image = img.data
   }
-  let blob = new Blob([image])
+
   let form = new FormData()
-  form.append('image', blob)
+  form.append('image', Buffer.from(image), {
+    filename: 'image.jpg',
+    contentType: 'image/jpeg'
+  })
   form.append('scale', 2)
 
   let { data } = await axios.post('https://api2.pixelcut.app/image/upscale/v1', form, {
@@ -54,7 +57,7 @@ module.exports = function (app) {
         status: false,
         creator: 'ZenzzXD',
         message: 'Gagal melakukan upscale gambar',
-        error: err?.message || err
+        error: err?.message || String(err)
       })
     }
   })
