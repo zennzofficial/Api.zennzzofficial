@@ -24,6 +24,16 @@
           }
         },
         {
+  "name": "Gemini PRO AI",
+  "desc": "Berinteraksi dengan Gemini Pro AI.",
+  "path": "/ai/geminipro?content=",
+  "status": "ready",
+  "params": {
+    "content": "Prompt atau pertanyaan untuk Gemini PRO AI"
+  },
+  "response_note": "Mengembalikan balasan teks dari Gemini PRO AI."
+}, 
+        {
           "name": "GPT4O AI",
           "desc": "Berinteraksi dengan GPT4O AI.",
           "path": "/ai/gpt4o?prompt=",
