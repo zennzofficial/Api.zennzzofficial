@@ -1,38 +1,24 @@
 const axios = require("axios");
-const cheerio = require("cheerio");
 
-async function igStalker(username) {
-  const baseurl = "https://insta-stories-viewer.com";
-
+async function forwardIGStalk(username) {
   try {
-    const { data: html } = await axios.get(`${baseurl}/${username}/`, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-      },
-    });
-
-    const $ = cheerio.load(html);
-
-    const avatar = $(".profile__avatar-pic").attr("src") || null;
-    const name = $(".profile__nickname").contents().first().text().trim();
-    const posts = $(".profile__stats-posts").text().trim();
-    const followers = $(".profile__stats-followers").text().trim();
-    const following = $(".profile__stats-follows").text().trim();
-    const bio = $(".profile__description").text().trim();
-
-    if (!avatar || !name) {
+    const { data } = await axios.get(`https://api.siputzx.my.id/api/stalk/instagram?username=${username}`);
+    
+    if (!data || !data.status || !data.result) {
       return {
         status: false,
-        message: "Akun tidak ditemukan atau tidak tersedia",
+        message: "Gagal mengambil data dari sumber",
       };
     }
 
+    const { avatar, username, posts, followers, following, bio } = data.result;
+
     return {
       status: true,
+      creator: "ZenzXD",
       result: {
         avatar,
-        username: name,
+        username,
         posts,
         followers,
         following,
@@ -42,7 +28,7 @@ async function igStalker(username) {
   } catch (e) {
     return {
       status: false,
-      message: "Gagal mengambil data",
+      message: "Terjadi kesalahan saat mengambil data",
       error: e.message,
     };
   }
@@ -59,7 +45,7 @@ module.exports = function (app) {
       });
     }
 
-    const result = await igStalker(username);
+    const result = await forwardIGStalk(username);
     res.json(result);
   });
 };
