@@ -3,15 +3,28 @@ const axios = require("axios");
 async function forwardIGStalk(uname) {
   try {
     const { data } = await axios.get(`https://api.siputzx.my.id/api/stalk/instagram?username=${uname}`);
-    
-    if (!data || !data.status || !data.result) {
+
+    // Cek response sesuai struktur API yang asli
+    if (!data || !data.status || !data.data) {
       return {
         status: false,
         message: "Gagal mengambil data dari sumber",
       };
     }
 
-    const { avatar, username, posts, followers, following, bio } = data.result;
+    // Extract data sesuai properti asli
+    const {
+      profile_pic_url: avatar,
+      username,
+      posts_count: posts,
+      followers_count: followers,
+      following_count: following,
+      biography: bio,
+      full_name,
+      is_verified,
+      is_private,
+      external_url
+    } = data.data;
 
     return {
       status: true,
@@ -19,10 +32,14 @@ async function forwardIGStalk(uname) {
       result: {
         avatar,
         username,
+        full_name,
         posts,
         followers,
         following,
         bio,
+        is_verified,
+        is_private,
+        external_url
       },
     };
   } catch (e) {
