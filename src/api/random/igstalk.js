@@ -1,8 +1,8 @@
 const axios = require("axios");
 
-async function forwardIGStalk(username) {
+async function forwardIGStalk(uname) {
   try {
-    const { data } = await axios.get(`https://api.siputzx.my.id/api/stalk/instagram?username=${username}`);
+    const { data } = await axios.get(`https://api.siputzx.my.id/api/stalk/instagram?username=${uname}`);
     
     if (!data || !data.status || !data.result) {
       return {
@@ -28,6 +28,7 @@ async function forwardIGStalk(username) {
   } catch (e) {
     return {
       status: false,
+      creator: "ZenzXD",
       message: "Terjadi kesalahan saat mengambil data",
       error: e.message,
     };
@@ -41,6 +42,7 @@ module.exports = function (app) {
     if (!username) {
       return res.status(400).json({
         status: false,
+        creator: "ZenzXD",
         message: "Parameter 'username' wajib diisi",
       });
     }
