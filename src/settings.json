@@ -43,6 +43,16 @@
           }
         },
         {
+          "name": "DeepSeek R1",
+          "desc": "Berinteraksi dengan DeepSeek R1 AI model.",
+          "path": "/ai/deepseekr1?prompt=",
+          "status": "ready",
+          "params": {
+            "prompt": "Pertanyaan atau prompt untuk DeepSeek R1"
+          },
+          "response_note": "Mengembalikan balasan teks dari DeepSeekr R1 AI."
+        }, 
+        {
           "name": "Claude AI One",
           "desc": "Berinteraksi dengan Claude AI.",
           "path": "/ai/claude?text=",
