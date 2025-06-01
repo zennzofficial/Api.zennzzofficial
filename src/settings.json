@@ -244,16 +244,16 @@
       "name": "Tools",
       "items": [
         {
-          "name": "Remini (Image upscaler)",
-          "desc": "Upscale / HD-kan gambar dari URL.",
-          "path": "/tools/remini?url=",
-          "method": "GET",
-          "status": "ready",
-          "params": {
-            "url": "URL gambar yang ingin di-HD-kan"
-          },
-          "response_note": "Mengembalikan URL gambar hasil upscale dalam JSON."
-        },
+  "name": "Remini (Image upscaler)",
+  "desc": "Upscale / HD-kan gambar dari URL.",
+  "path": "/tools/remini?url=",
+  "method": "GET",
+  "status": "ready",
+  "params": {
+    "url": "URL gambar yang ingin di-HD-kan"
+  },
+  "response_note": "Mengembalikan URL gambar hasil upscale dalam JSON."
+        }, 
         {
           "name": "Jarak",
           "desc": "Menghitung jarak dan estimasi waktu tempuh antara dua kota.",
