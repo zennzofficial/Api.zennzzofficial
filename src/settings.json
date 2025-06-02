@@ -35,7 +35,7 @@
     "enhance": "true / false (untuk meningkatkan kualitas gambar)"
   },
   "response_note": "Response langsung berupa gambar hasil AI (image/png). Model AI dikunci ke 'flux'."
-}
+}, 
         {
   "name": "Gemini PRO AI",
   "desc": "Berinteraksi dengan Gemini Pro AI.",
