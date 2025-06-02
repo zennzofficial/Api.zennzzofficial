@@ -321,16 +321,6 @@
           "response_note": "Mengembalikan data profil dalam format JSON. Ketersediaan dan struktur data bergantung pada layanan pihak ketiga."
         },
         {
-          "name": "Free Fire Stalker",
-          "desc": "Mencari info akun Free Fire berdasarkan UID.",
-          "path": "/stalker/freefire?id=",
-          "status": "error",
-          "params": {
-            "id": "UID akun Free Fire (misal: 123456789)"
-          },
-          "response_note": "Mengembalikan data seperti nickname, level, exp, rank, guild, pet, dan lainnya."
-        }, 
-        {
           "name": "TikTok Stalker",
           "desc": "Stalk profil TikTok (username saja).",
           "path": "/stalker/tiktok?username=",
