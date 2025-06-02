@@ -148,6 +148,15 @@
           }
         },
         {
+        "name": "SoundCloud Search",
+        "desc": "Cari lagu dari SoundCloud berdasarkan keyword.",
+        "path": "/search/SoundCloud?query=",
+        "status": "ready",
+        "params": {
+        "query": "Keyword pencarian (wajib)"
+  }
+}, 
+        {
           "name": "Pinterest Search",
           "desc": "Mencari gambar dari Pinterest berdasarkan keyword.",
           "path": "/search/pinterest?q=",
