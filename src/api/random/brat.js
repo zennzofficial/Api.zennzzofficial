@@ -27,7 +27,7 @@ module.exports = function (app) {
       res.status(500).json({
         status: false,
         creator: 'ZenzzXD',
-        message: 'Gagal mengambil gambar dari API nekorinn',
+        message: 'Gagal mengambil gambar dari API ZenzzXD',
         error: err?.message || err
       })
     }
