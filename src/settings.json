@@ -32,7 +32,7 @@
     "prompt": "Teks atau deskripsi gambar yang ingin dihasilkan"
   },
   "response_note": "Mengembalikan gambar secara langsung dalam format PNG."
-}
+}, 
         {
   "name": "Gemini PRO AI",
   "desc": "Berinteraksi dengan Gemini Pro AI.",
