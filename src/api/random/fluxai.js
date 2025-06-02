@@ -1,35 +1,38 @@
-const axios = require('axios')
+const fetch = require('node-fetch');
 
 module.exports = function (app) {
   app.get('/ai/flux', async (req, res) => {
-    const { prompt } = req.query
+    const { prompt, width = 1600, height = 900, enhance = true } = req.query;
+
     if (!prompt) {
       return res.status(400).json({
         status: false,
-        creator: 'ZenzzXD',
-        message: 'Parameter prompt tidak boleh kosong'
-      })
+        message: 'Masukkan prompt di query ?prompt=',
+        creator: 'ZenzzXD'
+      });
     }
 
     try {
-      const response = await axios.get(`https://api.siputzx.my.id/api/ai/flux?prompt=${encodeURIComponent(prompt)}`, {
-        responseType: 'arraybuffer'
-      })
+      const fluxUrl = `https://fastrestapis.fasturl.cloud/aiimage/flux/dimension?prompt=${encodeURIComponent(prompt)}&model=flux&width=${width}&height=${height}&enhance=${enhance}`;
+      const response = await fetch(fluxUrl);
 
-      res.set({
-        'Content-Type': response.headers['content-type'],
-        'Content-Disposition': 'inline; filename="flux-image.png"'
-      })
+      if (!response.ok) {
+        return res.status(500).json({
+          status: false,
+          message: 'Gagal mengambil gambar dari server upstream.',
+          creator: 'ZenzzXD'
+        });
+      }
 
-      res.send(response.data)
-    } catch (err) {
-      console.error(err)
+      res.set('Content-Type', response.headers.get('content-type'));
+      response.body.pipe(res);
+    } catch (error) {
       res.status(500).json({
         status: false,
-        creator: 'ZenzzXD',
-        message: 'Gagal mengambil gambar dari API flux',
-        error: err?.message || err
-      })
+        message: 'Terjadi kesalahan internal.',
+        error: error.message,
+        creator: 'ZenzzXD'
+      });
     }
-  })
-}
+  });
+};
