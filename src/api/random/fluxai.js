@@ -5,7 +5,6 @@ module.exports = function (app) {
     try {
       const {
         prompt,
-        model = 'flux',
         width = 1024,
         height = 1024,
         enhance = 'true'
@@ -19,7 +18,7 @@ module.exports = function (app) {
         });
       }
 
-      const apiUrl = `https://fastrestapis.fasturl.cloud/aiimage/flux/dimension?prompt=${encodeURIComponent(prompt)}&model=${model}&width=${width}&height=${height}&enhance=${enhance}`;
+      const apiUrl = `https://fastrestapis.fasturl.cloud/aiimage/flux/dimension?prompt=${encodeURIComponent(prompt)}&model=flux&width=${width}&height=${height}&enhance=${enhance}`;
 
       const response = await fetch(apiUrl);
 
