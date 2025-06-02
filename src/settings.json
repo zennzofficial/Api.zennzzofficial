@@ -25,18 +25,17 @@
         },
 {
   "name": "Flux AI Generator",
-  "desc": "Generate AI image dengan meng setting prompt, model, ukuran dan enhance.",
-  "path": "/ai/flux?prompt=&model=&width=&height=&enhance=",
+  "desc": "Generate AI image dengan meng setting ukuran dan kualita.",
+  "path": "/ai/flux?prompt=&width=&height=&enhance=",
   "status": "ready",
   "params": {
     "prompt": "Deskripsi gambar",
-    "model": "Model AI yang digunakan (default: flux)",
     "width": "Lebar gambar (default: 1024)",
     "height": "Tinggi gambar (default: 1024)",
     "enhance": "true / false (untuk meningkatkan kualitas gambar)"
   },
-  "response_note": "Response langsung berupa gambar hasil AI (image/png)."
-}, 
+  "response_note": "Response langsung berupa gambar hasil AI (image/png). Model AI dikunci ke 'flux'."
+}
         {
   "name": "Gemini PRO AI",
   "desc": "Berinteraksi dengan Gemini Pro AI.",
