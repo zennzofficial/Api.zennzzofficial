@@ -1,43 +1,45 @@
-const express = require("express");
-const axios = require("axios");
-const app = express();
+const axios = require('axios')
 
-app.get("/downloader/mediafire", async (req, res) => {
-  const { url } = req.query;
-
-  if (!url) {
-    return res.status(400).json({
-      status: false,
-      message: "Parameter 'url' tidak boleh kosong"
-    });
-  }
-
-  try {
-    const targetUrl = `https://fastrestapis.fasturl.cloud/downup/mediafiredown?url=${encodeURIComponent(url)}`;
-    const { data } = await axios.get(targetUrl);
-
-    if (!data || !data.result) {
-      throw new Error("Gagal mengambil data dari API pihak ketiga");
+module.exports = function (app) {
+  app.get('/downloader/mediafire', async (req, res) => {
+    const { url } = req.query
+    if (!url) {
+      return res.status(400).json({
+        status: false,
+        creator: 'ZenzzXD',
+        message: 'Parameter url tidak boleh kosong'
+      })
     }
 
-    // Hapus creator di dalam result kalau ada
-    if (data.result.creator) delete data.result.creator;
+    try {
+      const response = await axios.get('https://fastrestapis.fasturl.cloud/downup/mediafiredown', {
+        params: { url }
+      })
 
-    // Susun respons sesuai urutan yang diminta
-    res.json({
-      creator: "ZenzzXD",
-      status: data.status,
-      content: data.content,
-      result: data.result
-    });
-  } catch (err) {
-    res.status(500).json({
-      creator: "ZenzzXD",
-      status: false,
-      message: "Terjadi kesalahan saat memproses permintaan",
-      error: err.message
-    });
-  }
-});
+      const apiResult = response.data
 
-module.exports = app;
+      if (!apiResult || apiResult.status !== 200) {
+        return res.status(500).json({
+          status: false,
+          creator: 'ZenzzXD',
+          message: 'Gagal mengambil data Mediafire dari pihak ketiga'
+        })
+      }
+
+      res.status(200).json({
+        status: true,
+        creator: 'ZenzzXD',
+        result: apiResult.result
+      })
+
+    } catch (err) {
+      console.error(err)
+      res.status(500).json({
+        status: false,
+        creator: 'ZenzzXD',
+        message: 'Terjadi kesalahan saat memproses permintaan',
+        error: err?.message || err
+      })
+    }
+  })
+}
