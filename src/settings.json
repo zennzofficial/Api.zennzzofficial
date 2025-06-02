@@ -24,6 +24,16 @@
           }
         },
         {
+  "name": "Flux AI Image",
+  "desc": "Generate gambar AI dari prompt teks.",
+  "path": "/ai/flux?prompt=",
+  "status": "ready",
+  "params": {
+    "prompt": "Teks atau deskripsi gambar yang ingin dihasilkan"
+  },
+  "response_note": "Mengembalikan gambar secara langsung dalam format PNG."
+}
+        {
   "name": "Gemini PRO AI",
   "desc": "Berinteraksi dengan Gemini Pro AI.",
   "path": "/ai/geminipro?content=",
