@@ -237,6 +237,15 @@
           }
         },
         {
+  "name": "SoundCloud Downloader",
+  "desc": "Download audio dari link SoundCloud.",
+  "path": "/downloader/SoundCloud?url=",
+  "status": "ready",
+  "params": {
+    "url": "Link SoundCloud yang ingin diunduh (wajib)"
+  }
+        }, 
+        {
           "name": "TikTok Downloader",
           "desc": "Download video foto TikTok",
           "path": "/downloader/tiktok?url=",
