@@ -24,15 +24,18 @@
           }
         },
         {
-  "name": "Flux AI Image",
-  "desc": "Generate gambar AI dari prompt teks.",
-  "path": "/ai/flux?prompt=",
-  "status": "ready",
-  "params": {
-    "prompt": "Teks atau deskripsi gambar yang ingin dihasilkan"
-  },
-  "response_note": "Mengembalikan gambar secara langsung dalam format PNG."
-}, 
+          "name": "Flux AI Image Generator",
+          "desc": "Generate gambar AI bergaya Flux dengan prompt bebas.",
+          "path": "/ai/flux?prompt=",
+          "status": "ready",
+          "params": {
+            "prompt": "Deskripsi gambar yang ingin dibuat",
+            "width": "Lebar gambar (opsional, default 1600)",
+            "height": "Tinggi gambar (opsional, default 900)",
+            "enhance": "Gunakan enhancement kualitas (true/false, default true)"
+          },
+          "response_note": "Respon langsung berupa gambar PNG/JPEG."
+        }, 
         {
   "name": "Gemini PRO AI",
   "desc": "Berinteraksi dengan Gemini Pro AI.",
