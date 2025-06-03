@@ -1,49 +1,41 @@
-/*
- * Fitur By Anomaki Team
- * Created : xyzan code
- * SCRAPE CHATSANDBOX AI
- * Jangan Hapus Wm
- * https://whatsapp.com/channel/0029Vaio4dYC1FuGr5kxfy2l
- */
-
 const axios = require('axios');
 
-module.exports = function (app) {
-  app.get('/ai/chatsandbox', async (req, res) => {
-    const { prompt } = req.query;
+async function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-    if (!prompt) {
-      return res.status(400).json({
-        status: false,
-        message: 'Masukkan parameter ?prompt='
-      });
-    }
+async function chatsandbox(prompt, maxRetries = 3, retryDelay = 2000) {
+  const headers = {
+    'Content-Type': 'application/json',
+    'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36',
+    'Referer': 'https://chatsandbox.com/chat/openai'
+  };
 
+  const data = {
+    messages: [prompt],
+    character: 'openai'
+  };
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      const headers = {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36',
-        'Referer': 'https://chatsandbox.com/chat/openai'
-      };
-
-      const data = {
-        messages: [prompt],
-        character: 'openai'
-      };
-
-      const response = await axios.post('https://chatsandbox.com/api/chat', data, { headers });
-
-      res.json({
-        status: true,
-        creator: 'ZenzzXD',
-        result: response.data
+      const res = await axios.post('https://chatsandbox.com/api/chat', data, {
+        headers,
+        decompress: true
       });
+      return res.data;
     } catch (error) {
-      res.status(500).json({
-        status: false,
-        message: 'Terjadi kesalahan saat memproses permintaan.',
-        error: error.message
-      });
+      if (error.response && error.response.status === 429) {
+        if (attempt === maxRetries) {
+          throw new Error('Request gagal karena terlalu banyak permintaan (429). Coba lagi nanti.');
+        }
+        // Retry setelah delay
+        await delay(retryDelay);
+      } else {
+        // Error selain 429, langsung throw
+        throw new Error(error.message);
+      }
     }
-  });
-};
+  }
+}
+
+module.exports = chatsandbox;
