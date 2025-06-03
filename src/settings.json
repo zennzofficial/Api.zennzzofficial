@@ -23,6 +23,16 @@
             "text": "Text for luminai to respond to"
           }
         },
+              {
+          "name": "Chatsandbox AI",
+          "desc": "Chat bersama chatsandbox AI.",
+          "path": "/ai/chatsandbox?prompt=",
+          "status": "ready",
+          "params": {
+            "prompt": "Pertanyaan atau perintah untuk AI"
+          },
+          "response_note": "Respon berupa balasan teks dari AI c@hatsandbox karakter 'openai'."
+        }, 
 {
   "name": "Flux AI Generator",
   "desc": "Generate AI image dengan meng setting ukuran dan kualita.",
