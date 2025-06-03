@@ -12,75 +12,64 @@ module.exports = function (app) {
       });
     }
 
+    // prompt default yang sudah fix
     const prompt = "Please convert this image into Studio Ghibli art style with the Ghibli AI generator.";
     const sessionId = crypto.randomBytes(16).toString('hex');
     const timestamp = Date.now().toString();
 
     const payload = { imageUrl: url, sessionId, prompt, timestamp };
-    const headers = {
-      'Content-Type': 'application/json',
-      'User-Agent': 'Mozilla/5.0 (compatible; GhibliAI-Client/1.0)'
-    };
+    const headers = { 'content-type': 'application/json' };
 
     try {
+      // Start transform, dapat taskId
       const { data: postData } = await axios.post(
-        "https://ghibliai.ai/api/transform-stream",
+        'https://ghibliai.ai/api/transform-stream',
         payload,
         { headers, timeout: 180000 }
       );
 
       const taskId = postData.taskId;
-      if (!taskId) {
-        return res.status(500).json({
-          status: false,
-          message: 'Tidak dapat memulai tugas transformasi, taskId tidak ditemukan.'
-        });
-      }
-
       let retries = 0;
-      const maxRetries = 300; // 300 * 2s = 600s = 10 menit
+      const maxRetries = 300; // polling max 10 menit (300 * 2 detik)
 
+      // Polling status tiap 2 detik
       while (retries < maxRetries) {
-        try {
-          const { data: pollData } = await axios.get(
-            `https://ghibliai.ai/api/transform-stream?taskId=${taskId}`,
-            { headers, timeout: 180000 }
-          );
+        const { data: pollData } = await axios.get(
+          `https://ghibliai.ai/api/transform-stream?taskId=${taskId}`,
+          { headers, timeout: 180000 }
+        );
 
-          if (pollData.status === 'success') {
-            return res.json({
-              status: true,
-              message: 'Berhasil!',
-              result: pollData.result,
-              creator: 'ZenzzXD'
-            });
-          }
+        if (pollData.status === 'success') {
+          return res.json({
+            status: true,
+            message: 'Berhasil mengubah gambar ke style Ghibli!',
+            result: pollData,
+            creator: 'ZenzzXD'
+          });
+        }
 
-          if (pollData.status === 'error') {
-            return res.status(500).json({
-              status: false,
-              message: 'Gagal proses transformasi.',
-              error: pollData.error || pollData
-            });
-          }
-        } catch (pollErr) {
-          console.error('Polling error:', pollErr.message || pollErr);
+        if (pollData.status === 'error') {
+          return res.status(500).json({
+            status: false,
+            message: 'Gagal saat proses transformasi',
+            error: pollData.error || pollData
+          });
         }
 
         await new Promise(r => setTimeout(r, 2000));
         retries++;
       }
 
+      // Jika timeout
       return res.status(408).json({
         status: false,
-        message: 'Timeout: GhibliAI tidak merespons dalam waktu 10 menit.'
+        message: 'Timeout: GhibliAI tidak merespons dalam waktu yang diharapkan.'
       });
 
     } catch (err) {
-      console.error('Request error:', err.response?.data || err.message || err);
       return res.status(500).json({
         status: false,
-        message: 'Terjadi kesalahan saat proses.',
+        message: 'Terjadi kesalahan saat proses request ke GhibliAI.',
         error: err.message || err.response?.data
       });
     }
