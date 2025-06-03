@@ -307,15 +307,6 @@
           }
         },
         {
-  "name": "Ghibli Image Generator",
-  "desc": "Ubah gambar menjadi style Studio Ghibli.",
-  "path": "/tools/toghibli?url=",
-  "status": "ready",
-  "params": {
-    "url": "URL gambar yang ingin diubah"
-  }
-}, 
-        {
   "name": "Genius Lyrics",
   "desc": "Cari lirik lagu berdasarkan judul atau lirik.",
   "path": "/tools/genius?query=",
