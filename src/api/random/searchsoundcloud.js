@@ -102,7 +102,7 @@ module.exports = function (app) {
       const result = await sndSearch(query);
       res.json({
         status: true,
-        creator: 'Exonity',
+        creator: 'ZenzzXD',
         query,
         count: result.length,
         result
