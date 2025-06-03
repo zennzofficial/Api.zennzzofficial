@@ -17,7 +17,10 @@ module.exports = function (app) {
     const timestamp = Date.now().toString();
 
     const payload = { imageUrl: url, sessionId, prompt, timestamp };
-    const headers = { 'content-type': 'application/json' };
+    const headers = {
+      'Content-Type': 'application/json',
+      'User-Agent': 'Mozilla/5.0 (compatible; GhibliAI-Client/1.0)'
+    };
 
     try {
       const { data: postData } = await axios.post(
@@ -27,30 +30,41 @@ module.exports = function (app) {
       );
 
       const taskId = postData.taskId;
+      if (!taskId) {
+        return res.status(500).json({
+          status: false,
+          message: 'Tidak dapat memulai tugas transformasi, taskId tidak ditemukan.'
+        });
+      }
+
       let retries = 0;
-      const maxRetries = 60;
+      const maxRetries = 300; // 300 * 2s = 600s = 10 menit
 
       while (retries < maxRetries) {
-        const { data: pollData } = await axios.get(
-          `https://ghibliai.ai/api/transform-stream?taskId=${taskId}`,
-          { headers, timeout: 180000 }
-        );
+        try {
+          const { data: pollData } = await axios.get(
+            `https://ghibliai.ai/api/transform-stream?taskId=${taskId}`,
+            { headers, timeout: 180000 }
+          );
 
-        if (pollData.status === 'success') {
-          return res.json({
-            status: true,
-            message: 'Berhasil!',
-            result: pollData.result,
-            creator: 'ZenzzXD'
-          });
-        }
+          if (pollData.status === 'success') {
+            return res.json({
+              status: true,
+              message: 'Berhasil!',
+              result: pollData.result,
+              creator: 'ZenzzXD'
+            });
+          }
 
-        if (pollData.status === 'error') {
-          return res.status(500).json({
-            status: false,
-            message: 'Gagal proses',
-            error: pollData.error || pollData
-          });
+          if (pollData.status === 'error') {
+            return res.status(500).json({
+              status: false,
+              message: 'Gagal proses transformasi.',
+              error: pollData.error || pollData
+            });
+          }
+        } catch (pollErr) {
+          console.error('Polling error:', pollErr.message || pollErr);
         }
 
         await new Promise(r => setTimeout(r, 2000));
@@ -59,10 +73,11 @@ module.exports = function (app) {
 
       return res.status(408).json({
         status: false,
-        message: 'Timeout: GhibliAI tidak merespons tepat waktu.'
+        message: 'Timeout: GhibliAI tidak merespons dalam waktu 10 menit.'
       });
 
     } catch (err) {
+      console.error('Request error:', err.response?.data || err.message || err);
       return res.status(500).json({
         status: false,
         message: 'Terjadi kesalahan saat proses.',
