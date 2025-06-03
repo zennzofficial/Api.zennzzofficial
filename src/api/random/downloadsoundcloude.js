@@ -52,7 +52,7 @@ async function soundcloud(url) {
       duration: Math.floor(info.duration / 1000) + " sec",
       thumbnail: info.artwork_url || null,
       source_url: info.permalink_url,
-      creator: "Exonity"
+      creator: "ZenzzXD"
     };
   } catch (e) {
     return { error: true, message: e.message };
