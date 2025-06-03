@@ -8,7 +8,7 @@ module.exports = function (app) {
     if (!url) {
       return res.status(400).json({
         status: false,
-        message: 'Parameter "url" (URL gambar) wajib diisi.'
+        message: 'Parameter "url" wajib diisi.'
       });
     }
 
@@ -16,41 +16,30 @@ module.exports = function (app) {
     const sessionId = crypto.randomBytes(16).toString('hex');
     const timestamp = Date.now().toString();
 
-    const payload = {
-      imageUrl: url,
-      sessionId,
-      prompt,
-      timestamp
-    };
+    const payload = { imageUrl: url, sessionId, prompt, timestamp };
+    const headers = { 'content-type': 'application/json' };
 
     try {
       const { data: postData } = await axios.post(
         "https://ghibliai.ai/api/transform-stream",
         payload,
-        {
-          headers: {
-            'content-type': 'application/json'
-          }
-        }
+        { headers, timeout: 180000 }
       );
 
       const taskId = postData.taskId;
-      let retries = 0, maxRetries = 30;
+      let retries = 0;
+      const maxRetries = 60;
 
       while (retries < maxRetries) {
         const { data: pollData } = await axios.get(
           `https://ghibliai.ai/api/transform-stream?taskId=${taskId}`,
-          {
-            headers: {
-              'content-type': 'application/json'
-            }
-          }
+          { headers, timeout: 180000 }
         );
 
         if (pollData.status === 'success') {
           return res.json({
             status: true,
-            message: 'Berhasil generate Ghibli image!',
+            message: 'Berhasil!',
             result: pollData.result,
             creator: 'ZenzzXD'
           });
@@ -59,7 +48,7 @@ module.exports = function (app) {
         if (pollData.status === 'error') {
           return res.status(500).json({
             status: false,
-            message: 'Gagal proses image',
+            message: 'Gagal proses',
             error: pollData.error || pollData
           });
         }
@@ -70,14 +59,14 @@ module.exports = function (app) {
 
       return res.status(408).json({
         status: false,
-        message: 'Waktu tunggu habis. Silakan coba lagi nanti.'
+        message: 'Timeout: GhibliAI tidak merespons tepat waktu.'
       });
 
     } catch (err) {
       return res.status(500).json({
         status: false,
-        message: 'Terjadi kesalahan.',
-        error: err.response?.data || err.message
+        message: 'Terjadi kesalahan saat proses.',
+        error: err.message || err.response?.data
       });
     }
   });
