@@ -52,7 +52,7 @@ module.exports = function (app) {
             status: true,
             message: 'Berhasil generate Ghibli image!',
             result: pollData.result,
-            creator: 'JH x Fiony'
+            creator: 'ZenzzXD'
           });
         }
 
