@@ -361,6 +361,19 @@
           }
         }
       ]
+    }, 
+    {
+  "name": "Info API",
+  "items": [
+    {
+      "name": "API Status",
+      "desc": "Api Status Zenzz-XD Api.",
+      "path": "/api/status",
+      "status": "ready",
+      "method": "GET",
+      "response_note": "Response JSON berisi status API dan statistik runtime."
     }
+  ]
+}
   ]
 }
