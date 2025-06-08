@@ -191,24 +191,26 @@
     {
       "name": "Downloader",
       "items": [
-        {
-          "name": "YTMP3 Downloader",
-          "desc": "Download youtube audio",
-          "path": "/downloader/ytmp3?url=",
-          "status": "ready",
-          "params": {
-            "url": "URL video YouTube"
-          }
-        },
-        {
-          "name": "YTMP4 Downloader",
-          "desc": "Download youtube video",
-          "path": "/downloader/ytmp4?url=",
-          "status": "ready",
-          "params": {
-            "url": "URL video YouTube"
-          }
-        },
+    {
+      "name": "YTMP3 Downloader",
+      "desc": "Download youtube audio",
+      "path": "/downloader/ytmp3?url=",
+      "status": "ready",
+      "params": {
+        "url": "URL video YouTube"
+      },
+      "response_note": "Response berupa judul, channel, durasi, thumbnail, dan link MP3 (audio only)."
+    },
+    {
+      "name": "YTMP4 Downloader",
+      "desc": "Download youtube video",
+      "path": "/downloader/ytmp4?url=",
+      "status": "ready",
+      "params": {
+        "url": "URL video YouTube"
+      },
+      "response_note": "Response berupa judul, channel, durasi, thumbnail, dan link MP4 (video + audio)."
+    }, 
         {
   "name": "Spotify Downloader",
   "desc": "Download metadata dan audio dari Spotify track.",
