@@ -3,90 +3,78 @@ const cheerio = require('cheerio');
 
 module.exports = function (app) {
   app.get('/search/transfermarkt', async (req, res) => {
-    const { player } = req.query;
-
-    if (!player) {
+    const { query } = req.query;
+    if (!query) {
       return res.status(400).json({
         status: false,
         creator: 'ZenzzXD',
-        message: 'Parameter player tidak boleh kosong'
+        message: 'Parameter query tidak boleh kosong',
       });
     }
 
-    const jantung = {
-      "user-agent": "Mozilla/5.0",
-      "accept-language": "id-ID,id;q=0.9"
+    const headers = {
+      'user-agent': 'Mozilla/5.0',
+      'accept-language': 'id-ID,id;q=0.9',
     };
 
     try {
-      const searchRes = await axios.get(
-        `https://www.transfermarkt.co.id/schnellsuche/ergebnis/schnellsuche?query=${encodeURIComponent(player)}`,
-        { headers: jantung }
-      );
-
-      const $search = cheerio.load(searchRes.data);
-      const relativeLink = $search("table.items tbody tr td.hauptlink a").first().attr("href");
+      // Step 1: Cari link profil
+      const searchUrl = `https://www.transfermarkt.co.id/schnellsuche/ergebnis/schnellsuche?query=${encodeURIComponent(query)}`;
+      const searchRes = await axios.get(searchUrl, { headers });
+      const $s = cheerio.load(searchRes.data);
+      const relativeLink = $s('table.items tbody tr td.hauptlink a').first().attr('href');
 
       if (!relativeLink) {
         return res.status(404).json({
           status: false,
           creator: 'ZenzzXD',
-          message: `Profil untuk pemain "${player}" tidak ditemukan`
+          message: `Profil untuk pemain "${query}" tidak ditemukan`,
         });
       }
 
-      const profileUrl = "https://www.transfermarkt.co.id" + relativeLink;
-      const profileRes = await axios.get(profileUrl, { headers: jantung });
+      const profileUrl = 'https://www.transfermarkt.co.id' + relativeLink;
+
+      // Step 2: Ambil data dari profil pemain
+      const profileRes = await axios.get(profileUrl, { headers });
       const $ = cheerio.load(profileRes.data);
 
-      let name = $("h1.data-header__headline-wrapper").clone();
-      name.find("span.data-header__shirt-number").remove();
-      name = name.text().replace(/\s+/g, " ").trim();
+      // Nama & Nomor Punggung
+      let name = $('h1.data-header__headline-wrapper').clone();
+      name.find('span.data-header__shirt-number').remove();
+      name = name.text().trim().replace(/\s+/g, ' ');
+      const shirtNumber = $('.data-header__shirt-number').text().replace('#', '').trim() || null;
 
-      const shirtNumber = $(".data-header__shirt-number").text().replace("#", "").trim() || null;
-      const photo = $("#modal-1-content img").attr("src") || null;
+      const photo = $('#modal-1-content img').attr('src') || null;
 
-      const getInfoTableValue = (label) => {
-        let idx = -1;
-        $(".info-table__content--regular").each((i, el) => {
-          if ($(el).text().includes(label)) idx = i;
+      const getInfo = (label) => {
+        let value = null;
+        $('.info-table__content--regular').each((i, el) => {
+          if ($(el).text().includes(label)) {
+            value = $('.info-table__content--bold').eq(i).text().trim().replace(/\s{2,}/g, ' ').replace(/\u00a0/g, ' ');
+          }
         });
-        if (idx >= 0) {
-          return $(".info-table__content--bold")
-            .eq(idx)
-            .text()
-            .replace(/\s{2,}/g, ' ')
-            .replace(/\u00a0/g, ' ')
-            .trim();
-        }
-        return null;
+        return value;
       };
 
-      const birthRaw = getInfoTableValue("Tanggal lahir");
-      let birthdate = null, age = null;
-      if (birthRaw) {
-        const matchDate = birthRaw.match(/(\d{1,2} \w+ \d{4})/);
-        const matchAge = birthRaw.match(/(\d+)/);
-        birthdate = matchDate ? matchDate[1] : null;
-        age = matchAge ? matchAge[1] : null;
-      }
+      const birthRaw = getInfo('Tanggal lahir');
+      const birthMatch = birthRaw?.match(/(\d{1,2} \w+ \d{4})/);
+      const ageMatch = birthRaw?.match(/(\d+)\s*tahun/);
+      const birthdate = birthMatch ? birthMatch[1] : null;
+      const age = ageMatch ? ageMatch[1] : null;
 
-      const nationality = getInfoTableValue("Kewarganegaraan");
-      const height = getInfoTableValue("Tinggi");
-      const foot = getInfoTableValue("Kaki dominan");
-      const position = getInfoTableValue("Posisi");
-      const agent = getInfoTableValue("Agen pemain");
-      const contractUntil = getInfoTableValue("Kontrak berakhir");
-      const club = getInfoTableValue("Klub Saat Ini") || $(".data-header__club-info a").first().text().trim();
-      const league = $(".data-header__club-info .data-header__league-link").text().trim() || "Liga 1";
+      const nationality = getInfo('Kewarganegaraan') || null;
+      const height = getInfo('Tinggi') || null;
+      const foot = getInfo('Kaki dominan')?.toLowerCase() || null;
+      const position = getInfo('Posisi') || null;
+      const agent = getInfo('Agen pemain') || null;
+      const contractUntil = getInfo('Kontrak berakhir') || null;
+      const club = getInfo('Klub Saat Ini') || $('.data-header__club-info a').first().text().trim() || null;
+      const league = $('.data-header__club-info .data-header__league-link').text().trim() || null;
 
-      let marketValue = null;
-      const mvWrap = $(".data-header__market-value-wrapper");
-      if (mvWrap.length) {
-        const mvText = mvWrap.clone().children().remove().end().text().replace(/\s+/g, "").trim();
-        const mvUnit = mvWrap.find(".waehrung").text().replace(/\s+/g, "").trim();
-        marketValue = mvText + (mvUnit || "");
-      }
+      const mvWrapper = $('.data-header__market-value-wrapper');
+      const mvText = mvWrapper.clone().children().remove().end().text().trim().replace(/\s+/g, '');
+      const mvUnit = mvWrapper.find('.waehrung').text().trim().replace(/\s+/g, '');
+      const marketValue = mvText ? mvText + (mvUnit || '') : null;
 
       return res.json({
         status: true,
@@ -106,16 +94,16 @@ module.exports = function (app) {
           marketValue,
           club,
           league,
-          profileUrl
-        }
+          profileUrl,
+        },
       });
     } catch (err) {
       console.error(err);
-      res.status(500).json({
+      return res.status(500).json({
         status: false,
         creator: 'ZenzzXD',
         message: 'Gagal mengambil data pemain',
-        error: err?.message || err
+        error: err?.message || err,
       });
     }
   });
