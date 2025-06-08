@@ -148,15 +148,15 @@
             "q": "Kata kunci resep (contoh: ayam goreng)"
           }
         },
-        {
-  "name": "Transfermarkt Search",
-  "desc": "Mencari data pemain dari situs Transfermarkt.",
+{
+  "name": "Transfermarkt Player Search",
+  "desc": "Mencari data pemain sepak bola dari Transfermarkt berdasarkan nama.",
   "path": "/search/transfermarkt?query=",
   "status": "ready",
   "params": {
-    "query": "Nama pemain sepak bola yang ingin dicari (contoh: Lionel Messi)"
+    "query": "Nama pemain yang ingin dicari (contoh: Ole Romeny)"
   },
-  "response_note": "Mengembalikan detail pemain seperti nama, klub, posisi, negara, dan nilai pasar."
+  "response_note": "Mengembalikan informasi lengkap seperti nama, usia, klub, posisi, kewarganegaraan, dan nilai pasar dari Transfermarkt."
 }, 
         {
           "name": "TikTok Search",
