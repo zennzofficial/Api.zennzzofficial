@@ -149,6 +149,16 @@
           }
         },
         {
+  "name": "Transfermarkt Search",
+  "desc": "Mencari data pemain dari situs Transfermarkt.",
+  "path": "/search/transfermarkt?query=",
+  "status": "ready",
+  "params": {
+    "query": "Nama pemain sepak bola yang ingin dicari (contoh: Lionel Messi)"
+  },
+  "response_note": "Mengembalikan detail pemain seperti nama, klub, posisi, negara, dan nilai pasar."
+}, 
+        {
           "name": "TikTok Search",
           "desc": "Mencari video di tiktok.",
           "path": "/search/tiktok?q=",
