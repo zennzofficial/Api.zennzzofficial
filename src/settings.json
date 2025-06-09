@@ -210,7 +210,17 @@
         "url": "URL video YouTube"
       },
       "response_note": "Response berupa judul, channel, durasi, thumbnail, dan link MP4 (video + audio)."
-    }, 
+    },
+        {
+  "name": "Terabox Downloader",
+  "desc": "Download video atau file dari terabox.",
+  "path": "/downloader/terabox?url=",
+  "status": "ready",
+  "params": {
+    "url": "Link dari terabox.com/s/xxxxx"
+  },
+  "response_note": "Response berupa objek JSON yang berisi informasi file dan link download langsung dari Terabox."
+}, 
         {
   "name": "Spotify Downloader",
   "desc": "Download metadata dan audio dari Spotify track.",
