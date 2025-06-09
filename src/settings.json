@@ -57,6 +57,17 @@
   "response_note": "Mengembalikan balasan teks dari Gemini PRO AI."
 }, 
         {
+  "name": "Claila AI Chat",
+  "desc": "Chat AI pakai berbagai model dari Claila seperti chatgpt,claude,gemini,dll.",
+  "path": "/ai/claila?model=&message=",
+  "status": "ready",
+  "params": {
+    "model": "Model AI yang ingin digunakan (chatgpt,claude,gemini,chatgpt41mini,chatgpto1mini,mistral,grok)",
+    "message": "Pesan atau prompt yang ingin dikirim ke AI"
+  },
+  "response_note": "Response berupa hasil text dari model AI Claila yang dipilih."
+        }, 
+        {
           "name": "GPT4O AI",
           "desc": "Berinteraksi dengan GPT4O AI.",
           "path": "/ai/gpt4o?prompt=",
