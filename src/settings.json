@@ -318,6 +318,16 @@
   "response_note": "Mengembalikan URL gambar hasil upscale dalam JSON."
         }, 
         {
+  "name": "Hosting Checker",
+  "desc": "Ngecek data hosting, nameserver, dan mail server dari domain kamu.",
+  "path": "/tools/hostingcheck?domain=",
+  "status": "ready",
+  "params": {
+    "domain": "Domain yang mau dicek, contoh: domain.com"
+  },
+  "response_note": "Respon langsung berupa data JSON lengkap info hosting, nameserver, dan mail server."
+}
+        {
           "name": "Jarak",
           "desc": "Menghitung jarak dan estimasi waktu tempuh antara dua kota.",
           "path": "/tools/distance?cityA=&cityB=&unit=",
