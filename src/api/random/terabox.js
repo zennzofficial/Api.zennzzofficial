@@ -9,138 +9,70 @@ const terabox = {
 
   headers: {
     'authority': 'teraboxdl.site',
-    'user-agent': 'Postify/1.0.0'
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/114.0.0.0 Safari/537.36'
   },
 
   token: null,
 
-  getToken: async () => {
-    if (terabox.token) {
-      return {
-        status: 'success',
-        code: 200,
-        result: terabox.token
-      };
+  getToken: async (force = false) => {
+    if (!force && terabox.token) {
+      return { status: 'success', code: 200, result: terabox.token }
     }
 
     try {
-      const response = await axios.get(`${terabox.api.base}${terabox.api.token}`, { headers: terabox.headers });
-      const { data, status } = response;
-
-      if (!data || !data.token) {
-        return {
-          status: 'error',
-          code: 404,
-          message: 'Tokennya kagak ada bree, coba lagi nanti yak 😬'
-        };
+      const { data } = await axios.get(`${terabox.api.base}${terabox.api.token}`, { headers: terabox.headers })
+      if (!data?.token) {
+        throw new Error('Token gak ada di response')
       }
-
-      terabox.token = data.token;
-      return {
-        status: 'success',
-        code: status,
-        result: terabox.token
-      };
-
-    } catch (error) {
-      if (error.response) {
-        return {
-          status: 'error',
-          code: error.response.status,
-          message: `${error.response.data.message || error.message}`
-        };
-      } else {
-        return {
-          status: 'error',
-          code: 500,
-          message: `${error.message}`
-        };
-      }
+      terabox.token = data.token
+      return { status: 'success', code: 200, result: data.token }
+    } catch (err) {
+      console.error('Error getToken:', err.response?.data || err.message)
+      return { status: 'error', code: err.response?.status || 500, message: err.response?.data?.message || err.message }
     }
   },
 
-  isUrl: (url) => {
-    const match = url.match(/https?:\/\/(?:www\.)?(?:\w+)\.(com|link|app)\/s\/([^\/]+)/i);
-    return match ? `https://1024terabox.com/s/${match[2]}` : null;
+  isUrl: (u) => {
+    const m = u.match(/https?:\/\/(?:www\.)?(?:terabox|teraboxlink)\.(com|app)\/s\/([^\/]+)/i)
+    return m ? `https://1024terabox.com/s/${m[2]}` : null
   },
 
-  request: async (endpoint, params = {}) => {
-    const toket = await terabox.getToken();
-    if (toket.status === 'error') {
-      return toket;
-    }
+  request: async (endpoint, params) => {
+    let tokenRes = await terabox.getToken()
+    if (tokenRes.status === 'error') return tokenRes
 
-    const url = `${terabox.api.base}${endpoint}?` + new URLSearchParams(params);
-
-    try {
-      const res = await axios.get(url, {
-        headers: { ...terabox.headers, 'x-access-token': toket.result }
-      });
-
-      const { data, status } = res;
-
-      if (!data || Object.keys(data).length === 0) {
-        return {
-          status: 'error',
-          code: status,
-          message: 'Kagak ada response dari apinya bree...'
-        };
-      }
-
-      const result = data.data;
-
-      return {
-        status: 'success',
-        code: status,
-        result
-      };
-
-    } catch (error) {
-      if (error.response) {
-        return {
-          status: 'error',
-          code: error.response.status,
-          message: `${error.response.data.message || error.message}`
-        };
-      } else {
-        return {
-          status: 'error',
-          code: 500,
-          message: `${error.message}`
-        };
+    const makeRequest = async () => {
+      const url = `${terabox.api.base}${endpoint}?${new URLSearchParams(params)}`
+      try {
+        const { data, status } = await axios.get(url, {
+          headers: { ...terabox.headers, 'x-access-token': terabox.token }
+        })
+        return { status: 'success', code: status, result: data.data }
+      } catch (err) {
+        console.warn('Request error:', err.response?.data || err.message)
+        if (err.response?.data?.message === 'Invalid access token') {
+          // Hapus token dan retry sekali
+          terabox.token = null
+          tokenRes = await terabox.getToken(true)
+          if (tokenRes.status === 'error') return tokenRes
+          return makeRequest()
+        }
+        return { status: 'error', code: err.response?.status || 500, message: err.response?.data?.message || err.message }
       }
     }
+
+    return await makeRequest()
   },
 
-  download: async (url) => {
-    if (!url || typeof url !== 'string' || url.trim() === '') {
-      return {
-        status: 'error',
-        code: 400,
-        message: 'Lu niat download pake Terabox kagak? Input lu kosong anjiir 🙃'
-      };
+  download: async (u) => {
+    if (!u || typeof u !== 'string' || !u.trim()) {
+      return { status: 'error', code: 400, message: 'URL kosong bree!' }
     }
-
-    const linkNya = terabox.isUrl(url.trim());
-    if (!linkNya) {
-      return {
-        status: 'error',
-        code: 400,
-        message: 'Kagak valid tuh linknya.. link yang dibolehin tuh kek gini "https://terabox.com/s/abcdefgh"'
-      };
+    const fixed = terabox.isUrl(u.trim())
+    if (!fixed) {
+      return { status: 'error', code: 400, message: 'URL gak valid, harus kayak: https://terabox.com/s/abcdef' }
     }
-
-    const response = await terabox.request(terabox.api.terabox, { url: linkNya });
-
-    if (response.status === 'error') {
-      return response;
-    }
-
-    return {
-      status: 'success',
-      code: 200,
-      result: response.result
-    };
+    return await terabox.request(terabox.api.terabox, { url: fixed })
   }
 }
 
@@ -148,36 +80,18 @@ module.exports = function (app) {
   app.get('/downloader/terabox', async (req, res) => {
     const { url } = req.query
     if (!url) {
-      return res.status(400).json({
-        status: false,
-        creator: 'ZenzzXD',
-        message: 'Parameter url tidak boleh kosong'
-      })
+      return res.status(400).json({ status: false, creator: 'ZenzzXD', message: 'Parameter url gak boleh kosong' })
     }
 
     try {
-      const result = await terabox.download(url)
-      if (result.status === 'error') {
-        return res.status(result.code || 500).json({
-          status: false,
-          creator: 'ZenzzXD',
-          message: result.message
-        })
+      const out = await terabox.download(url)
+      if (out.status === 'error') {
+        return res.status(out.code || 500).json({ status: false, creator: 'ZenzzXD', message: out.message })
       }
-
-      res.status(200).json({
-        status: true,
-        creator: 'ZenzzXD',
-        result: result.result
-      })
+      return res.json({ status: true, creator: 'ZenzzXD', result: out.result })
     } catch (err) {
-      console.error(err)
-      res.status(500).json({
-        status: false,
-        creator: 'ZenzzXD',
-        message: 'Gagal mengambil data Terabox',
-        error: err?.message || String(err)
-      })
+      console.error('Fatal terabox error:', err)
+      return res.status(500).json({ status: false, creator: 'ZenzzXD', message: 'Internal server error', error: err.message })
     }
   })
 }
