@@ -179,6 +179,16 @@
           }
         },
         {
+  "name": "Spotify Search",
+  "desc": "Cari lagu dari Spotify berdasarkan judul atau artis",
+  "path": "/search/spotify?query=",
+  "status": "ready",
+  "params": {
+    "query": "Judul lagu atau nama artis"
+  },
+  "response_note": "Response berupa 3 lagu teratas dari Spotify (title, artist, album, cover, url)."
+}, 
+        {
         "name": "SoundCloud Search",
         "desc": "Cari lagu dari SoundCloud berdasarkan keyword.",
         "path": "/search/SoundCloud?query=",
