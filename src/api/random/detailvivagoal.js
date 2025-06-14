@@ -3,6 +3,7 @@ const cheerio = require('cheerio');
 const https = require('https');
 
 const agent = new https.Agent({ rejectUnauthorized: false });
+const cache = {}; // In-memory cache
 
 module.exports = function (app) {
   app.get('/berita/vivagoal/detail', async (req, res) => {
@@ -15,6 +16,13 @@ module.exports = function (app) {
       });
     }
 
+    // Cek cache
+    const cacheKey = url;
+    if (cache[cacheKey] && (Date.now() - cache[cacheKey].time < 10 * 60 * 1000)) {
+      // 10 menit cache
+      return res.json(cache[cacheKey].data);
+    }
+
     try {
       const { data } = await axios.get(url, {
         headers: {
@@ -24,56 +32,50 @@ module.exports = function (app) {
       });
       const $ = cheerio.load(data);
 
-      // Judul
       const title =
         $('meta[property="og:title"]').attr('content') ||
         $('h1.entry-title').text().trim() ||
         $('title').text().trim();
 
-      // Thumbnail
       const thumbnail =
         $('meta[property="og:image"]').attr('content') ||
         $('meta[name="twitter:image"]').attr('content') ||
         '';
 
-      // Tanggal publish
       let published =
         $('time.entry-date').text().trim() ||
         $('meta[property="article:published_time"]').attr('content') ||
         $('meta[name="pubdate"]').attr('content') ||
         '';
 
-      // Konten utama
       let content = '';
-      // 1. Coba ambil dari td-post-content
       if ($('div.td-post-content').length) {
         content = $('div.td-post-content p').map((_, el) => $(el).text().trim()).get().join('\n\n');
       }
-      // 2. Fallback ke entry-content
       if (!content && $('div.entry-content').length) {
         content = $('div.entry-content p').map((_, el) => $(el).text().trim()).get().join('\n\n');
       }
-      // 3. Fallback ke article
       if (!content && $('article').length) {
         content = $('article p').map((_, el) => $(el).text().trim()).get().join('\n\n');
       }
-      // 4. Fallback ke semua <p>
       if (!content) {
         content = $('p').map((_, el) => $(el).text().trim()).get().join('\n\n');
       }
-      // 5. Fallback ke meta description
       if (!content) {
         content = $('meta[name="description"]').attr('content') || '';
       }
-
-      // Bersihkan konten dari spasi kosong
       content = content.split('\n\n').filter(Boolean).join('\n\n');
 
-      res.json({
+      const responseData = {
         status: true,
         creator: 'ZenzzXD',
         result: { title, thumbnail, published, content, url }
-      });
+      };
+
+      // Simpan ke cache
+      cache[cacheKey] = { data: responseData, time: Date.now() };
+
+      res.json(responseData);
     } catch (err) {
       res.status(500).json({
         status: false,
