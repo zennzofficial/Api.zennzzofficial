@@ -1,18 +1,11 @@
+const express = require("express");
 const axios = require("axios");
 const cheerio = require("cheerio");
 const https = require("https");
 
+const app = express();
+const port = process.env.PORT || 3000;
 const agent = new https.Agent({ rejectUnauthorized: false });
-
-async function getOgImage(url) {
-  try {
-    const { data } = await axios.get(url, { httpsAgent: agent, timeout: 10000 });
-    const $ = cheerio.load(data);
-    return $('meta[property="og:image"]').attr("content") || null;
-  } catch {
-    return null;
-  }
-}
 
 async function fetchBeritaBolaRSS() {
   const { data } = await axios.get("https://vivagoal.com/category/berita-bola/feed/", {
@@ -23,44 +16,34 @@ async function fetchBeritaBolaRSS() {
   const $ = cheerio.load(data, { xmlMode: true });
   const items = $("item").toArray();
 
-  const result = await Promise.all(items.map(async (el) => {
+  const result = items.map((el) => {
     const title = $(el).find("title").text();
     const link = $(el).find("link").text();
     const published = $(el).find("pubDate").text();
-    const thumbnail = await getOgImage(link);
 
-    return { title, link, published, thumbnail };
-  }));
+    return { title, link, published };
+  });
 
   return result;
 }
 
-module.exports = function (app) {
-  app.get("/tools/berita-bola", async (req, res) => {
-    try {
-      const articles = await fetchBeritaBolaRSS();
+app.get("/api/berita-bola", async (req, res) => {
+  try {
+    const result = await fetchBeritaBolaRSS();
+    res.json({
+      status: true,
+      creator: "ZenzzXD",
+      count: result.length,
+      result,
+    });
+  } catch (e) {
+    res.status(500).json({
+      status: false,
+      message: "Gagal mengambil berita bola",
+    });
+  }
+});
 
-      if (!articles.length) {
-        return res.status(502).json({
-          status: false,
-          creator: "ZenzzXD",
-          message: "Tidak ada artikel ditemukan dari RSS."
-        });
-      }
-
-      res.json({
-        status: true,
-        creator: "ZenzzXD",
-        count: articles.length,
-        result: articles
-      });
-    } catch (err) {
-      res.status(500).json({
-        status: false,
-        creator: "ZenzzXD",
-        message: "Gagal mengambil berita bola via RSS",
-        error: err.message
-      });
-    }
-  });
-};
+app.listen(port, () => {
+  console.log(`Server berjalan di http://localhost:${port}`);
+});
