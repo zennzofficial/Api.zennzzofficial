@@ -391,35 +391,14 @@
   "response_note": "Mengembalikan gambar PNG secara langsung sebagai tangkapan layar dari website."
 }, 
         {
-  "name": "Text to Speech",
-  "desc": "Mengubah teks menjadi suara menggunakan voice karakter dari Speechma.",
-  "path": "/tools/text2speech?text=&voice=&pitch=&rate=&volume=",
+  "name": "Berita Bola",
+  "desc": "Menampilkan headline berita sepak bola terbaru dari situs Vivagoal.",
+  "path": "/tools/berita-bola",
   "method": "GET",
   "status": "ready",
   "params": {
-    "text": "Teks yang ingin diubah menjadi suara. (wajib)",
-    "voice": "Nama karakter suara (opsional, default: Ava Multilingual)",
-    "pitch": "Nada suara dari -20 hingga 20 (opsional, default: 0)",
-    "rate": "Kecepatan bicara dari -20 hingga 20 (opsional, default: 0)",
-    "volume": "Volume suara dari 0 hingga 100 (opsional, default: 100)"
-  },
-  "response_note": "Mengembalikan URL file audio (MP3) dari hasil konversi TTS.",
-  "available_voices": [
-    "Andrew Multilingual",
-    "Ava Multilingual",
-    "Brian Multilingual",
-    "Emma Multilingual",
-    "Ana",
-    "Andrew",
-    "Aria",
-    "Libby",
-    "Maisie",
-    "Keita",
-    "Nanami",
-    "InJoon",
-    "SunHi"
-  ]
-}, 
+  "response_note": "Mengembalikan daftar berita bola terbaru dalam bentuk array berisi judul, link, thumbnail, author, dan waktu publish."
+        }, 
         {
           "name": "Background Remover",
           "desc": "Menghapus background dari gambar menggunakan (maks 5MB).",
