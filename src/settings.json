@@ -391,15 +391,6 @@
   "response_note": "Mengembalikan gambar PNG secara langsung sebagai tangkapan layar dari website."
 }, 
         {
-  "name": "Berita Bola",
-  "desc": "Menampilkan berita sepak bola terbaru dari situs Vivagoal.",
-  "path": "/tools/berita-bola",
-  "method": "GET",
-  "status": "ready",
-  "params": {}, 
-  "response_note": "Mengembalikan daftar berita bola terbaru dalam bentuk array berisi judul, link, thumbnail, author, dan waktu publish."
-        }, 
-        {
           "name": "Background Remover (removal.ai)",
           "desc": "Menghapus background dari gambar menggunakan removal.ai (maks 5MB).",
           "path": "/tools/removebg?url=",
@@ -434,6 +425,21 @@
         }
       ]
 }, 
+    {
+      "name": "Berita - News",
+      "items": [
+        {
+  "name": "Berita Bola",
+  "desc": "Menampilkan berita sepak bola terbaru dari situs Vivagoal.",
+  "path": "/berita/berita-bola",
+  "method": "GET",
+  "status": "ready",
+  "params": {}, 
+  "response_note": "Mengembalikan daftar berita bola terbaru dalam bentuk array berisi judul, link, thumbnail, author, dan waktu publish."
+        }
+        }
+      ]
+    },
     {
       "name": "Info API",
       "items": [
