@@ -1,36 +1,28 @@
-const axios = require('axios');
-const cheerio = require('cheerio');
+const axios = require("axios");
+const cheerio = require("cheerio");
 
-module.exports = function(app) {
-  app.get('/berita/kompas-tv', async (req, res) => {
+module.exports = function (app) {
+  app.get("/berita/kompas-tv", async (req, res) => {
     try {
-      const { data } = await axios.get('https://news.kompas.com/?source=navbar', { timeout: 10000 });
-      const $ = cheerio.load(data);
-      const articles = [];
+      const { data } = await axios.get("https://www.kompas.tv/rss/nasional.xml");
+      const $ = cheerio.load(data, { xmlMode: true });
 
-      $('.latest--idx-0, .latest--idx-1, .latest--idx-2').each((_, el) => {
-        const elSel = $(el);
-        const title = elSel.find('h3.article__title, h2.article__title').text().trim();
-        const link = elSel.find('a.article__link').attr('href');
-        const published = elSel.find('span.article__date').text().trim();
+      const items = $("item").map((_, el) => ({
+        title: $(el).find("title").text(),
+        link: $(el).find("link").text(),
+        published: $(el).find("pubDate").text()
+      })).get();
 
-        if (title && link) {
-          articles.push({ title, link, published });
-        }
-      });
-
-      return res.json({
+      res.json({
         status: true,
-        creator: 'ZenzzXD',
-        count: articles.length,
-        result: articles
+        creator: "ZenzzXD",
+        count: items.length,
+        result: items
       });
     } catch (err) {
-      console.error('Scrape error:', err.message);
-      return res.status(500).json({
+      res.status(500).json({
         status: false,
-        creator: 'ZenzzXD',
-        message: 'Gagal mengambil berita dari news.kompas.com',
+        message: "Gagal mengambil RSS KompasTV",
         error: err.message
       });
     }
