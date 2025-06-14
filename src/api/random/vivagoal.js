@@ -1,10 +1,7 @@
-const express = require("express");
 const axios = require("axios");
 const cheerio = require("cheerio");
 const https = require("https");
 
-const app = express();
-const port = process.env.PORT || 3000;
 const agent = new https.Agent({ rejectUnauthorized: false });
 
 async function fetchBeritaBolaRSS() {
@@ -27,23 +24,21 @@ async function fetchBeritaBolaRSS() {
   return result;
 }
 
-app.get("/tools/berita-bola", async (req, res) => {
-  try {
-    const result = await fetchBeritaBolaRSS();
-    res.json({
-      status: true,
-      creator: "ZenzzXD",
-      count: result.length,
-      result,
-    });
-  } catch (e) {
-    res.status(500).json({
-      status: false,
-      message: "Gagal mengambil berita bola",
-    });
-  }
-});
-
-app.listen(port, () => {
-  console.log(`Server berjalan di http://localhost:${port}`);
-});
+module.exports = function (app) {
+  app.get("/tools/berita-bola", async (req, res) => {
+    try {
+      const result = await fetchBeritaBolaRSS();
+      res.json({
+        status: true,
+        creator: "ZenzzXD",
+        count: result.length,
+        result,
+      });
+    } catch (e) {
+      res.status(500).json({
+        status: false,
+        message: "Gagal mengambil berita bola",
+      });
+    }
+  });
+};
