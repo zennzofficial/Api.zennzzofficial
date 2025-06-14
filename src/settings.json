@@ -445,7 +445,7 @@
   "status": "ready",
   "params": {},
   "response_note": "Mengembalikan daftar berita terbaru dari KompasTV dalam bentuk array berisi judul dan link berita."
-}, 
+}
       ]
     },
     {
