@@ -8,7 +8,7 @@ module.exports = function (app) {
     if (!url) {
       return res.status(400).json({
         status: false,
-        message: "Masukkan parameter ?url= dengan link video Facebook/Instagram/Tiktok, dll"
+        message: "Masukkan parameter ?url= dengan link video Facebook"
       });
     }
 
