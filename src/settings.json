@@ -440,7 +440,7 @@
       "name": "Berita - News",
       "items": [
         {
-  "name": "VivaGoal",
+  "name": "Berita VivaGoal",
   "desc": "Menampilkan berita Sepak Bola terbaru dari situs Vivagoal.",
   "path": "/berita/berita-bola",
   "method": "GET",
