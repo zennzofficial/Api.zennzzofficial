@@ -1,6 +1,6 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
-const fs = require("fs");
+const https = require("https");
 
 async function beritabola() {
   try {
@@ -8,16 +8,13 @@ async function beritabola() {
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
       },
-      validateStatus: () => true // biar tetap jalan meski status bukan 200
+      httpsAgent: new https.Agent({ rejectUnauthorized: false }), // <<< ini solusi SSL error
+      validateStatus: () => true
     });
 
     const html = response.data;
     const status = response.status;
 
-    // Save isi HTML-nya untuk dicek
-    fs.writeFileSync("vivagoal.html", html);
-    console.log(`Status Code: ${status}`);
-    
     if (status !== 200) {
       throw new Error(`Gagal fetch halaman, status code: ${status}`);
     }
@@ -25,22 +22,15 @@ async function beritabola() {
     const $ = cheerio.load(html);
     const articles = [];
 
-    // Fix selector headline
     $(".td-big-grid-wrapper .td-module-thumb").each((i, el) => {
       const url = $(el).find("a").attr("href");
       const image = $(el).find("img").attr("src") || $(el).find("img").attr("data-src");
       const title = $(el).find("img").attr("title") || $(el).find("a").attr("title");
       if (url && title) {
-        articles.push({
-          url,
-          image,
-          title,
-          categories: []
-        });
+        articles.push({ url, image, title, categories: [] });
       }
     });
 
-    // Artikel biasa
     $(".td_block_wrap .td_module_6").each((i, el) => {
       const url = $(el).find("a").attr("href");
       const image = $(el).find("img").attr("src") || $(el).find("img").attr("data-src");
@@ -51,12 +41,7 @@ async function beritabola() {
       });
 
       if (url && title) {
-        articles.push({
-          url,
-          image,
-          title,
-          categories
-        });
+        articles.push({ url, image, title, categories });
       }
     });
 
@@ -66,22 +51,3 @@ async function beritabola() {
     throw new Error("Gagal mengambil berita bola.");
   }
 }
-
-module.exports = function (app) {
-  app.get('/news/beritabola', async (req, res) => {
-    try {
-      const result = await beritabola();
-      res.status(200).json({
-        status: true,
-        creator: 'ZenzzXD',
-        result
-      });
-    } catch (err) {
-      res.status(500).json({
-        status: false,
-        creator: 'ZenzzXD',
-        message: err.message || 'Internal server error'
-      });
-    }
-  });
-};
