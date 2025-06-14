@@ -27,7 +27,7 @@ async function fetchBeritaBolaRSS() {
   return result;
 }
 
-app.get("/api/berita-bola", async (req, res) => {
+app.get("/toold/berita-bola", async (req, res) => {
   try {
     const result = await fetchBeritaBolaRSS();
     res.json({
