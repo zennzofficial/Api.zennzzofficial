@@ -438,8 +438,8 @@
   "response_note": "Mengembalikan daftar berita bola terbaru dalam bentuk array berisi judul, link, thumbnail, author, dan waktu publish."
         }, 
         {
-  "name": "Berita CNNindonesia",
-  "desc": "Menampilkan berita terbaru dari situs CNNindonesia.",
+  "name": "Berita cnnindonesia",
+  "desc": "Menampilkan berita terbaru dari situs cnnindonesia.",
   "path": "/berita/cnnindonesia",
   "method": "GET",
   "status": "ready",
@@ -447,13 +447,13 @@
   "response_note": "Mengembalikan daftar berita terbaru dari cnnindonesia dalam bentuk array berisi judul dan link berita."
 }, 
 {
-  "name": "Detail Berita KompasTV",
-  "desc": "Mengambil detail berita dari situs KompasTV URL.",
-  "path": "/berita/kompas-tv/detail?url=",
+  "name": "Detail Berita cnnindonesia",
+  "desc": "Mengambil detail berita dari situs cnnindonesia URL.",
+  "path": "/berita/cnnindonesia/detail?url=",
   "method": "GET",
   "status": "ready",
   "params": {
-    "url": "URL artikel KompasTV yang valid, contoh: https://www.kompas.tv/article/XXXX"
+    "url": "URL artikel cnnindonesia yang valid"
   },
   "response_note": "Response berupa judul, waktu publish, thumbnail, isi konten, dan URL sumber artikel."
 }
