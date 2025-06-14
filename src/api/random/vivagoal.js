@@ -2,7 +2,7 @@ const axios = require("axios");
 const cheerio = require("cheerio");
 const https = require("https");
 
-// Mengatasi error SSL (certificate)
+// Bypass SSL error seperti "unable to verify the first certificate"
 const agent = new https.Agent({
   rejectUnauthorized: false,
 });
@@ -10,8 +10,11 @@ const agent = new https.Agent({
 async function fetchBeritaBola() {
   const url = "https://vivagoal.com/category/berita-bola/";
   const { data } = await axios.get(url, {
-    timeout: 10000,
+    timeout: 20000, // waktu tunggu lebih panjang
     httpsAgent: agent,
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+    },
   });
 
   const $ = cheerio.load(data);
@@ -23,8 +26,7 @@ async function fetchBeritaBola() {
     const published = $(el).find(".jeg_meta_date").text().trim();
     const author = $(el).find(".jeg_meta_author a").text().trim();
     const thumb =
-      $(el).find(".thumb img").attr("data-src") ||
-      $(el).find(".thumb img").attr("src");
+      $(el).find(".thumb img").attr("data-src") || $(el).find(".thumb img").attr("src");
 
     if (title && link) {
       result.push({ title, link, thumbnail: thumb, author, published });
