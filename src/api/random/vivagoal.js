@@ -1,5 +1,5 @@
 const axios = require("axios");
-const cheerio = require("cheerio");
+const xml2js = require("xml2js");
 const https = require("https");
 
 const agent = new https.Agent({ rejectUnauthorized: false });
@@ -9,33 +9,24 @@ async function fetchBeritaBolaRSS() {
     "https://vivagoal.com/category/berita-bola/feed/",
     {
       timeout: 20000,
-      httpsAgent: agent
+      httpsAgent: agent,
+      headers: {
+        "User-Agent": "Mozilla/5.0",
+      },
     }
   );
 
-  const $ = cheerio.load(data, { xmlMode: true });
-  const result = [];
+  const parser = new xml2js.Parser({ explicitArray: false, mergeAttrs: true });
+  const result = await parser.parseStringPromise(data);
+  const items = result.rss.channel.item;
+  const list = Array.isArray(items) ? items : [items];
 
-  $("item").each((_, el) => {
-    const title = $(el).find("title").first().text();
-    const link = $(el).find("link").first().text();
-    const published = $(el).find("pubDate").first().text();
-
-    // Ambil thumbnail dari media:content atau enclosure
-    let thumbnail = null;
-    const mediaContent = $(el).find("media\\:content");
-    const enclosure = $(el).find("enclosure");
-
-    if (mediaContent.length && mediaContent.attr("url")) {
-      thumbnail = mediaContent.attr("url");
-    } else if (enclosure.length && enclosure.attr("url")) {
-      thumbnail = enclosure.attr("url");
-    }
-
-    result.push({ title, link, published, thumbnail });
-  });
-
-  return result;
+  return list.map(item => ({
+    title: item.title,
+    link: item.link,
+    published: item.pubDate,
+    thumbnail: item["media:content"]?.url || item.enclosure?.url || null
+  }));
 }
 
 module.exports = function(app) {
