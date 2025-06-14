@@ -271,6 +271,17 @@
             "url": "URL halaman MediaFire"
           }
         },
+          {
+    "name": "Facebook Downloader",
+    "desc": "Unduh video dari Facebook.",
+    "path": "/downloader/facebook?url=",
+    "status": "ready",
+    "params": {
+      "url": "URL Facebook"
+    },
+    "response_note": "Hasil berupa judul, thumbnail, dan array link download dengan kualitas, tipe, ukuran, dan direct link."
+  },
+
         {
           "name": "All-in-One Downloader",
           "desc": "Mengunduh video dari berbagai sumber.",
