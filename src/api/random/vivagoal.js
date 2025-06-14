@@ -1,11 +1,18 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
+const https = require("https");
+
+const agent = new https.Agent({ rejectUnauthorized: false });
 
 async function fetchBeritaBolaRSS() {
   const { data } = await axios.get(
     "https://vivagoal.com/category/berita-bola/feed/",
-    { timeout: 20000 }
+    {
+      timeout: 20000,
+      httpsAgent: agent
+    }
   );
+
   const $ = cheerio.load(data, { xmlMode: true });
   const result = [];
 
