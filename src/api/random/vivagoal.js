@@ -1,28 +1,26 @@
-const axios = require("axios");
+const puppeteer = require("puppeteer");
 const cheerio = require("cheerio");
-const https = require("https");
 
 async function beritabola() {
   try {
-    const response = await axios.get("https://vivagoal.com/category/berita-bola/", {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-      },
-      httpsAgent: new https.Agent({ rejectUnauthorized: false }), // Bypass SSL verify
-      validateStatus: () => true
+    const browser = await puppeteer.launch({
+      headless: "new", // pakai true juga bisa
+      args: ['--no-sandbox', '--disable-setuid-sandbox'] // buat environment server/VPS
+    });
+    const page = await browser.newPage();
+
+    await page.goto("https://vivagoal.com/category/berita-bola/", {
+      waitUntil: "networkidle2",
+      timeout: 0
     });
 
-    const html = response.data;
-    const status = response.status;
-
-    if (status !== 200) {
-      throw new Error(`Gagal fetch halaman, status code: ${status}`);
-    }
+    const html = await page.content();
+    await browser.close();
 
     const $ = cheerio.load(html);
     const articles = [];
 
-    // Headline
+    // Headline/utama
     $(".td-big-grid-wrapper .td-module-thumb").each((i, el) => {
       const url = $(el).find("a").attr("href");
       const image = $(el).find("img").attr("src") || $(el).find("img").attr("data-src");
@@ -49,12 +47,12 @@ async function beritabola() {
 
     return articles;
   } catch (error) {
-    console.error("❌ Scraping error:", error.message);
+    console.error("❌ Puppeteer scraping error:", error.message);
     throw new Error("Gagal mengambil berita bola.");
   }
 }
 
-// ✅ Tambahkan ini untuk routing endpoint Express.js
+// ✅ Ekspor ke routing Express
 module.exports = function (app) {
   app.get('/news/beritabola', async (req, res) => {
     try {
