@@ -392,7 +392,7 @@
 }, 
         {
   "name": "Berita Bola",
-  "desc": "Menampilkan headline berita sepak bola terbaru dari situs Vivagoal.",
+  "desc": "Menampilkan berita sepak bola terbaru dari situs Vivagoal.",
   "path": "/tools/berita-bola",
   "method": "GET",
   "status": "ready",
