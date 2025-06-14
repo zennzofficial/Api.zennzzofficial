@@ -17,12 +17,22 @@ async function fetchBeritaBolaRSS() {
   const result = [];
 
   $("item").each((_, el) => {
-    result.push({
-      title: $(el).find("title").text(),
-      link: $(el).find("link").text(),
-      published: $(el).find("pubDate").text(),
-      thumbnail: $(el).find("media\\:content, content").attr("url") || null
-    });
+    const title = $(el).find("title").first().text();
+    const link = $(el).find("link").first().text();
+    const published = $(el).find("pubDate").first().text();
+
+    // Ambil thumbnail dari media:content atau enclosure
+    let thumbnail = null;
+    const mediaContent = $(el).find("media\\:content");
+    const enclosure = $(el).find("enclosure");
+
+    if (mediaContent.length && mediaContent.attr("url")) {
+      thumbnail = mediaContent.attr("url");
+    } else if (enclosure.length && enclosure.attr("url")) {
+      thumbnail = enclosure.attr("url");
+    }
+
+    result.push({ title, link, published, thumbnail });
   });
 
   return result;
