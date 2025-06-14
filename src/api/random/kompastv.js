@@ -4,11 +4,16 @@ const cheerio = require('cheerio');
 async function fetchKompasNasionalRSS() {
   const { data } = await axios.get('https://www.kompas.com/getrss/nasional', { timeout: 10000 });
   const $ = cheerio.load(data, { xmlMode: true });
-  return $('item').map((_, el) => ({
+
+  const result = $('item').map((_, el) => ({
     title: $(el).find('title').text().trim(),
     link: $(el).find('link').text().trim(),
-    published: $(el).find('pubDate').text().trim()
+    published: $(el).find('pubDate').text().trim(),
+    author: $(el).find('dc\\:creator').text().trim() || 'Kompas',
+    thumbnail: $(el).find('media\\:content, enclosure').attr('url') || null
   })).get();
+
+  return result;
 }
 
 module.exports = function(app) {
@@ -25,7 +30,7 @@ module.exports = function(app) {
       res.status(500).json({
         status: false,
         creator: 'ZenzzXD',
-        message: 'Gagal mengambil berita nasional via RSS Kompas.com',
+        message: 'Gagal mengambil berita nasional via RSS Kompas',
         error: err.message
       });
     }
