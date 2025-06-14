@@ -1,51 +1,36 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
-const https = require("https");
 
-// Bypass SSL error seperti "unable to verify the first certificate"
-const agent = new https.Agent({
-  rejectUnauthorized: false,
-});
-
-async function fetchBeritaBola() {
-  const url = "https://vivagoal.com/category/berita-bola/";
-  const { data } = await axios.get(url, {
-    timeout: 20000, // waktu tunggu lebih panjang
-    httpsAgent: agent,
-    headers: {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-    },
-  });
-
-  const $ = cheerio.load(data);
+async function fetchBeritaBolaRSS() {
+  const { data } = await axios.get(
+    "https://vivagoal.com/category/berita-bola/feed/",
+    { timeout: 20000 }
+  );
+  const $ = cheerio.load(data, { xmlMode: true });
   const result = [];
 
-  $(".jeg_post").each((_, el) => {
-    const title = $(el).find(".jeg_post_title a").text().trim();
-    const link = $(el).find(".jeg_post_title a").attr("href");
-    const published = $(el).find(".jeg_meta_date").text().trim();
-    const author = $(el).find(".jeg_meta_author a").text().trim();
-    const thumb =
-      $(el).find(".thumb img").attr("data-src") || $(el).find(".thumb img").attr("src");
-
-    if (title && link) {
-      result.push({ title, link, thumbnail: thumb, author, published });
-    }
+  $("item").each((_, el) => {
+    result.push({
+      title: $(el).find("title").text(),
+      link: $(el).find("link").text(),
+      published: $(el).find("pubDate").text(),
+      thumbnail: $(el).find("media\\:content, content").attr("url") || null
+    });
   });
 
   return result;
 }
 
-module.exports = function (app) {
+module.exports = function(app) {
   app.get("/tools/berita-bola", async (req, res) => {
     try {
-      const articles = await fetchBeritaBola();
+      const articles = await fetchBeritaBolaRSS();
 
       if (!articles.length) {
         return res.status(502).json({
           status: false,
           creator: "ZenzzXD",
-          message: "Tidak ada artikel ditemukan atau struktur HTML berubah.",
+          message: "Tidak ada artikel ditemukan dari RSS."
         });
       }
 
@@ -53,14 +38,14 @@ module.exports = function (app) {
         status: true,
         creator: "ZenzzXD",
         count: articles.length,
-        result: articles,
+        result: articles
       });
     } catch (err) {
       res.status(500).json({
         status: false,
         creator: "ZenzzXD",
-        message: "Gagal mengambil berita bola",
-        error: err.message,
+        message: "Gagal mengambil berita bola via RSS",
+        error: err.message
       });
     }
   });
