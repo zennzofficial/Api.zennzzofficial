@@ -467,7 +467,19 @@
     "url": "URL artikel cnnindonesia yang valid"
   },
   "response_note": "Response berupa judul, waktu publish, thumbnail, isi konten, dan URL sumber artikel."
+}, 
+        {
+  "name": "Detail Berita VivaGoal",
+  "desc": "Mengambil detail berita dari situs VivaGoal berdasarkan URL.",
+  "path": "/berita/vivagoal/detail?url=",
+  "method": "GET",
+  "status": "ready",
+  "params": {
+    "url": "URL artikel VivaGoal yang valid"
+  },
+  "response_note": "Response berupa judul, waktu publish, thumbnail, isi konten, dan URL sumber artikel."
 }
+
       ]
     },
     {
