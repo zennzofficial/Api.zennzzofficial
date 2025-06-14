@@ -424,32 +424,30 @@
           }
         }
       ]
-    }, 
-[
-  {
-    "name": "News",
-    "items": [
-      {
-        "name": "Berita Bola",
-        "desc": "Berita sepak bola terbaru",
-        "path": "/news/beritabola",
-        "status": "ready",
-        "method": "GET",
-        "response_note": "Mengembalikan array berita bola dengan judul, gambar, kategori, dan URL."
-      }
-    ]
-  },
-  {
-    "name": "Info API",
-    "items": [
-      {
-        "name": "API Status",
-        "desc": "Api Status Zenzz-XD Api.",
-        "path": "/api/status",
-        "status": "ready",
-        "method": "GET",
-        "response_note": "Response JSON berisi status API dan statistik runtime."
-      }
-    ]
-  }
-]
+},
+    {
+      "name": "News & Info",
+      "items": [
+        {
+          "name": "Berita Bola",
+          "desc": "Berita sepak bola terbaru",
+          "path": "/news/beritabola",
+          "status": "ready",
+          "method": "GET",
+          "response_note": "Mengembalikan array berita bola dengan judul, gambar, kategori, dan URL."
+        }
+      ]
+    },
+    {
+      "name": "Info API",
+      "items": [
+        {
+          "name": "API Status",
+          "desc": "Api Status Zenzz-XD Api.",
+          "path": "/api/status",
+          "status": "ready",
+          "method": "GET",
+          "response_note": "Response JSON berisi status API dan statistik runtime."
+        }
+      ]
+    }
