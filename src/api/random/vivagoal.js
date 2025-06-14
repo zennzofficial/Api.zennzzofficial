@@ -3,11 +3,16 @@ const cheerio = require("cheerio");
 
 async function beritabola() {
   try {
-    const { data: html } = await axios.get("https://vivagoal.com/category/berita-bola/");
+    const { data: html } = await axios.get("https://vivagoal.com/category/berita-bola/", {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+      }
+    });
+
     const $ = cheerio.load(html);
     const articles = [];
 
-    // Bagian headline swiper
+    // Headline swiper
     $(".swiper-wrapper .swiper-slide").each((i, el) => {
       const article = {
         url: $(el).find("a").attr("href") || null,
@@ -21,7 +26,7 @@ async function beritabola() {
       if (article.url && article.title) articles.push(article);
     });
 
-    // Bagian artikel biasa
+    // Artikel biasa
     $(".col-lg-6.mb-4").each((i, el) => {
       const article = {
         url: $(el).find("a").attr("href") || null,
@@ -37,11 +42,12 @@ async function beritabola() {
 
     return articles;
   } catch (error) {
-    console.error("Terjadi kesalahan saat melakukan scraping:", error.message);
+    console.error("Terjadi kesalahan saat scraping:", error.message);
     throw new Error("Gagal mengambil berita bola.");
   }
 }
 
+// Express Route
 module.exports = function (app) {
   app.get('/news/beritabola', async (req, res) => {
     try {
