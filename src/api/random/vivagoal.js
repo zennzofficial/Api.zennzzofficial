@@ -25,7 +25,7 @@ async function fetchBeritaBolaRSS() {
 }
 
 module.exports = function (app) {
-  app.get("/tools/berita-bola", async (req, res) => {
+  app.get("/berita/berita-bola", async (req, res) => {
     try {
       const result = await fetchBeritaBolaRSS();
       res.json({
