@@ -396,12 +396,12 @@
   "path": "/tools/berita-bola",
   "method": "GET",
   "status": "ready",
-  "params": {
+  "params": {}, 
   "response_note": "Mengembalikan daftar berita bola terbaru dalam bentuk array berisi judul, link, thumbnail, author, dan waktu publish."
         }, 
         {
-          "name": "Background Remover",
-          "desc": "Menghapus background dari gambar menggunakan (maks 5MB).",
+          "name": "Background Remover (removal.ai)",
+          "desc": "Menghapus background dari gambar menggunakan removal.ai (maks 5MB).",
           "path": "/tools/removebg?url=",
           "status": "ready",
           "params": {
