@@ -445,6 +445,17 @@
   "status": "ready",
   "params": {},
   "response_note": "Mengembalikan daftar berita terbaru dari KompasTV dalam bentuk array berisi judul dan link berita."
+}, 
+        {
+  "name": "Detail Berita KompasTV",
+  "desc": "Mengambil konten lengkap dari URL berita KompasTV.",
+  "path": "/berita/kompas-tv/detail",
+  "method": "GET",
+  "status": "ready",
+  "params": {
+    "url": "URL dari berita KompasTV (wajib)"
+  },
+  "response_note": "Mengembalikan detail berita berisi judul, waktu, thumbnail, isi artikel, dan URL."
 }
       ]
     },
