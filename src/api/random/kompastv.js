@@ -13,18 +13,19 @@ async function fetchKompasTv() {
   const $ = cheerio.load(data);
   const items = [];
 
-  $('h2, h3').each((_, el) => {
-    const title = $(el).text().trim();
-    const link = $(el).find('a').attr('href');
-    if (title && link && link.startsWith('http')) {
+  $('a.card__link').each((_, el) => {
+    const link = 'https://www.kompas.tv' + $(el).attr('href');
+    const title = $(el).find('.card__title').text().trim();
+
+    if (title && link.includes('/article/')) {
       items.push({ title, link });
     }
   });
 
-  return items.slice(0, 20); // ambil maksimal 20
+  return items.slice(0, 20); // ambil maksimal 20 berita
 }
 
-module.exports = function(app) {
+module.exports = function (app) {
   app.get('/berita/kompas-tv', async (req, res) => {
     try {
       const result = await fetchKompasTv();
