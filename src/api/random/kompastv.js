@@ -1,46 +1,36 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
-const https = require('https');
 
-const agent = new https.Agent({ rejectUnauthorized: false });
-
-async function fetchKompasTv() {
-  const { data } = await axios.get('https://www.kompas.tv/', {
-    httpsAgent: agent,
-    timeout: 10000
+async function fetchKompasKom() {
+  const { data } = await axios.get('https://www.kompas.com/getrss/olahraga', { timeout: 10000 });
+  const $ = cheerio.load(data, { xmlMode: true });
+  const result = [];
+  $('item').each((_, el) => {
+    result.push({
+      title: $(el).find('title').text().trim(),
+      link: $(el).find('link').text().trim(),
+      published: $(el).find('pubDate').text().trim(),
+    });
   });
-
-  const $ = cheerio.load(data);
-  const items = [];
-
-  $('a.card__link').each((_, el) => {
-    const link = 'https://www.kompas.tv' + $(el).attr('href');
-    const title = $(el).find('.card__title').text().trim();
-
-    if (title && link.includes('/article/')) {
-      items.push({ title, link });
-    }
-  });
-
-  return items.slice(0, 20); // ambil maksimal 20 berita
+  return result;
 }
 
-module.exports = function (app) {
+module.exports = function(app) {
   app.get('/berita/kompas-tv', async (req, res) => {
     try {
-      const result = await fetchKompasTv();
+      const result = await fetchKompasKom();
       res.json({
         status: true,
         creator: 'ZenzzXD',
         count: result.length,
         result
       });
-    } catch (err) {
+    } catch (e) {
       res.status(500).json({
         status: false,
         creator: 'ZenzzXD',
-        message: 'Gagal mengambil berita dari kompas.tv',
-        error: err.message
+        message: 'Gagal mengambil berita kompas.com',
+        error: e.message
       });
     }
   });
