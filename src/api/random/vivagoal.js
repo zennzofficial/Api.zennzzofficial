@@ -1,35 +1,41 @@
 const axios = require("axios");
-const xml2js = require("xml2js");
+const cheerio = require("cheerio");
 const https = require("https");
 
 const agent = new https.Agent({ rejectUnauthorized: false });
 
-async function fetchBeritaBolaRSS() {
-  const { data } = await axios.get(
-    "https://vivagoal.com/category/berita-bola/feed/",
-    {
-      timeout: 20000,
-      httpsAgent: agent,
-      headers: {
-        "User-Agent": "Mozilla/5.0",
-      },
-    }
-  );
-
-  const parser = new xml2js.Parser({ explicitArray: false, mergeAttrs: true });
-  const result = await parser.parseStringPromise(data);
-  const items = result.rss.channel.item;
-  const list = Array.isArray(items) ? items : [items];
-
-  return list.map(item => ({
-    title: item.title,
-    link: item.link,
-    published: item.pubDate,
-    thumbnail: item["media:content"]?.url || item.enclosure?.url || null
-  }));
+async function getOgImage(url) {
+  try {
+    const { data } = await axios.get(url, { httpsAgent: agent, timeout: 10000 });
+    const $ = cheerio.load(data);
+    return $('meta[property="og:image"]').attr("content") || null;
+  } catch {
+    return null;
+  }
 }
 
-module.exports = function(app) {
+async function fetchBeritaBolaRSS() {
+  const { data } = await axios.get("https://vivagoal.com/category/berita-bola/feed/", {
+    timeout: 20000,
+    httpsAgent: agent,
+  });
+
+  const $ = cheerio.load(data, { xmlMode: true });
+  const items = $("item").toArray();
+
+  const result = await Promise.all(items.map(async (el) => {
+    const title = $(el).find("title").text();
+    const link = $(el).find("link").text();
+    const published = $(el).find("pubDate").text();
+    const thumbnail = await getOgImage(link);
+
+    return { title, link, published, thumbnail };
+  }));
+
+  return result;
+}
+
+module.exports = function (app) {
   app.get("/tools/berita-bola", async (req, res) => {
     try {
       const articles = await fetchBeritaBolaRSS();
