@@ -8,7 +8,7 @@ async function beritabola() {
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
       },
-      httpsAgent: new https.Agent({ rejectUnauthorized: false }), // <<< ini solusi SSL error
+      httpsAgent: new https.Agent({ rejectUnauthorized: false }), // Bypass SSL verify
       validateStatus: () => true
     });
 
@@ -22,6 +22,7 @@ async function beritabola() {
     const $ = cheerio.load(html);
     const articles = [];
 
+    // Headline
     $(".td-big-grid-wrapper .td-module-thumb").each((i, el) => {
       const url = $(el).find("a").attr("href");
       const image = $(el).find("img").attr("src") || $(el).find("img").attr("data-src");
@@ -31,6 +32,7 @@ async function beritabola() {
       }
     });
 
+    // Artikel biasa
     $(".td_block_wrap .td_module_6").each((i, el) => {
       const url = $(el).find("a").attr("href");
       const image = $(el).find("img").attr("src") || $(el).find("img").attr("data-src");
@@ -51,3 +53,23 @@ async function beritabola() {
     throw new Error("Gagal mengambil berita bola.");
   }
 }
+
+// ✅ Tambahkan ini untuk routing endpoint Express.js
+module.exports = function (app) {
+  app.get('/news/beritabola', async (req, res) => {
+    try {
+      const result = await beritabola();
+      res.status(200).json({
+        status: true,
+        creator: 'ZenzzXD',
+        result
+      });
+    } catch (err) {
+      res.status(500).json({
+        status: false,
+        creator: 'ZenzzXD',
+        message: err.message || 'Internal server error'
+      });
+    }
+  });
+};
