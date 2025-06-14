@@ -436,7 +436,16 @@
   "status": "ready",
   "params": {}, 
   "response_note": "Mengembalikan daftar berita bola terbaru dalam bentuk array berisi judul, link, thumbnail, author, dan waktu publish."
-        }
+        }, 
+        {
+  "name": "Berita KompasTV",
+  "desc": "Menampilkan berita terbaru dari situs KompasTV.",
+  "path": "/berita/kompas-tv",
+  "method": "GET",
+  "status": "ready",
+  "params": {},
+  "response_note": "Mengembalikan daftar berita terbaru dari KompasTV dalam bentuk array berisi judul dan link berita."
+}, 
       ]
     },
     {
