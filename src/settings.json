@@ -437,7 +437,6 @@
   "params": {}, 
   "response_note": "Mengembalikan daftar berita bola terbaru dalam bentuk array berisi judul, link, thumbnail, author, dan waktu publish."
         }
-        }
       ]
     },
     {
