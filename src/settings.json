@@ -439,7 +439,7 @@
         }, 
         {
   "name": "Berita KompasTV",
-  "desc": "Menampilkan berita terbaru dari situs KompasTV.",
+  "desc": "Menampilkan berita olahraga terbaru dari situs KompasTV.",
   "path": "/berita/kompas-tv",
   "method": "GET",
   "status": "ready",
