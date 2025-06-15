@@ -7,7 +7,7 @@ module.exports = function (app) {
       return res.status(400).json({
         status: false,
         creator: 'ZenzzXD',
-        message: "Parameter 'url' wajib diisi"
+        message: "Parameter 'image' wajib diisi"
       });
     }
 
@@ -15,20 +15,22 @@ module.exports = function (app) {
 
     try {
       const response = await axios.get(url, {
-        responseType: 'stream'
+        responseType: 'arraybuffer', // Menggunakan arraybuffer untuk menghindari timeout
+        timeout: 10000 // Set timeout 10 detik
       });
 
       res.setHeader('Content-Type', response.headers['content-type'] || 'image/webp');
       res.setHeader('Content-Length', response.headers['content-length'] || '');
       res.setHeader('Creator', 'ZenzzXD');
 
-      response.data.pipe(res);
+      // Mengirimkan data sebagai buffer
+      res.send(Buffer.from(response.data));
     } catch (err) {
       console.error('[image2ghibli] Error:', err.message);
       return res.status(502).json({
         status: false,
         creator: 'ZenzzXD',
-        message: 'Gagal mengambil data',
+        message: 'error',
         error: err.message
       });
     }
