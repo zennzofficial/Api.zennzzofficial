@@ -6,6 +6,7 @@ module.exports = function (app) {
     if (!text) {
       return res.status(400).json({
         status: false,
+        creator: 'ZenzzXD',
         message: "Parameter 'text' wajib diisi"
       });
     }
@@ -18,22 +19,22 @@ module.exports = function (app) {
     for (const url of apiUrls) {
       try {
         const response = await axios.get(url, {
-          responseType: 'stream', // << penting agar tidak buffer binary
+          responseType: 'stream',
         });
 
-        // Set header content-type langsung dari API target
+        // Forward content-type sesuai response asli
         res.setHeader('Content-Type', response.headers['content-type'] || 'video/mp4');
-        response.data.pipe(res); // Pipe langsung stream ke user
-        return;
+        res.setHeader('Creator', 'ZenzzXD');
+        return response.data.pipe(res);
       } catch (err) {
-        // Jika gagal, lanjut ke API berikutnya
-        console.log(`Gagal dari: ${url}`);
+        console.warn(`[BratVid] Gagal mengambil dari ${url}: ${err.message}`);
       }
     }
 
-    // Jika semua API gagal
+    // Kalau semua gagal
     res.status(502).json({
       status: false,
+      creator: 'ZenzzXD',
       message: 'Gagal mengambil data'
     });
   });
