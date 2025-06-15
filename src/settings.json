@@ -233,6 +233,18 @@
       "response_note": "Response berupa judul, channel, durasi, thumbnail, dan link MP4 (video + audio)."
     },
         {
+  "name": "Twitter/X Video Downloader",
+  "desc": "Unduh video dari Twitter/X.",
+  "path": "/downloader/twitter?url=",
+  "method": "GET",
+  "status": "ready",
+  "params": {
+    "url": "URL tweet dari twitter.com atau x.com"
+  },
+  "response_note": "Response berupa info tweet dan array link download dengan kualitas berbeda."
+}, 
+
+        {
   "name": "Terabox Downloader",
   "desc": "Download video atau file dari terabox.",
   "path": "/downloader/terabox?url=",
