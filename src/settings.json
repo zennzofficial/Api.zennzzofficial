@@ -478,6 +478,15 @@
   "response_note": "Mengembalikan daftar berita terbaru dari cnnindonesia dalam bentuk array berisi judul dan link berita."
 }, 
 {
+  "name": "Berita Kompas",
+  "desc": "Menampilkan berita terbaru dari situs Kompas.com",
+  "path": "/berita/kompas",
+  "method": "GET",
+  "status": "ready",
+  "params": {},
+  "response_note": "Response berupa array artikel dengan judul, URL, dan thumbnail."
+},        
+{
   "name": "Detail Berita cnnindonesia",
   "desc": "Mengambil detail berita dari situs cnnindonesia URL.",
   "path": "/berita/cnnindonesia/detail?url=",
