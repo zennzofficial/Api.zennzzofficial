@@ -233,8 +233,8 @@
       "response_note": "Response berupa judul, channel, durasi, thumbnail, dan link MP4 (video + audio)."
     },
         {
-  "name": "Twitter/X Video Downloader",
-  "desc": "Unduh video dari Twitter/X.",
+  "name": "Twitter Downloader",
+  "desc": "Unduh foto video gif dari twitter",
   "path": "/downloader/twitter?url=",
   "method": "GET",
   "status": "ready",
