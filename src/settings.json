@@ -392,6 +392,17 @@
   "response_note": "Mengembalikan URL gambar hasil upscale dalam JSON."
         }, 
         {
+  "name": "OCR Text Extractor",
+  "desc": "Ekstrak teks dari gambar menggunakan teknologi OCR (Optical Character Recognition).",
+  "path": "/tools/ocr?imageUrl=",
+  "method": "GET",
+  "status": "ready",
+  "params": {
+    "imageUrl": "URL gambar yang ingin diekstrak teksnya (jpg, jpeg, png, gif, bmp, webp)"
+  },
+  "response_note": "Response berupa teks yang terdeteksi dari gambar, confidence level, dan informasi processing."
+}, 
+        {
   "name": "Hosting Checker",
   "desc": "Ngecek data hosting, nameserver, dan mail server dari domain kamu.",
   "path": "/tools/hostingcheck?domain=",
