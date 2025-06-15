@@ -4,95 +4,43 @@ const cheerio = require('cheerio');
 module.exports = function(app) {
   app.get('/berita/kompas', async (req, res) => {
     try {
-      const { data } = await axios.get('https://www.kompas.com/', {
+      // Scraping dari RSS feed Kompas (lebih banyak artikel)
+      const { data } = await axios.get('https://www.kompas.com/rss/', {
         headers: { 
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         },
         timeout: 15000
       });
 
-      const $ = cheerio.load(data);
+      const $ = cheerio.load(data, { xmlMode: true });
       const articles = [];
 
-      // Coba beberapa selector yang berbeda untuk artikel Kompas
-      const selectors = [
-        'article.article--list',
-        'article.article--photo',
-        'div.article__list',
-        'div.latest__item',
-        'article',
-        '.article'
-      ];
-
-      let foundArticles = false;
-
-      for (const selector of selectors) {
-        if (foundArticles) break;
+      $('item').each((i, el) => {
+        const title = $(el).find('title').text().trim();
+        const url = $(el).find('link').text().trim();
+        const description = $(el).find('description').text().trim();
+        const pubDate = $(el).find('pubDate').text().trim();
         
-        $(selector).each((i, el) => {
-          // Coba berbagai selector untuk title
-          let title = $(el).find('h3 a').text().trim() ||
-                     $(el).find('h2 a').text().trim() ||
-                     $(el).find('.article__title a').text().trim() ||
-                     $(el).find('.article__link').text().trim() ||
-                     $(el).find('a').first().text().trim();
+        // Extract thumbnail dari description (biasanya ada tag img)
+        const descHtml = cheerio.load(description);
+        const thumb = descHtml('img').attr('src') || '';
 
-          // Coba berbagai selector untuk URL
-          let url = $(el).find('h3 a').attr('href') ||
-                   $(el).find('h2 a').attr('href') ||
-                   $(el).find('.article__title a').attr('href') ||
-                   $(el).find('.article__link').attr('href') ||
-                   $(el).find('a').first().attr('href');
-
-          // Coba berbagai selector untuk thumbnail
-          let thumb = $(el).find('img').attr('data-src') ||
-                     $(el).find('img').attr('src') ||
-                     $(el).find('img').attr('data-original') ||
-                     '';
-
-          // Pastikan URL lengkap
-          if (url && !url.startsWith('http')) {
-            if (url.startsWith('/')) {
-              url = 'https://www.kompas.com' + url;
-            } else {
-              url = 'https://www.kompas.com/' + url;
-            }
-          }
-
-          // Pastikan thumbnail URL lengkap
-          if (thumb && !thumb.startsWith('http') && thumb.startsWith('/')) {
-            thumb = 'https://www.kompas.com' + thumb;
-          }
-
-          if (title && url && title.length > 10) {
-            articles.push({
-              title,
-              url,
-              thumbnail: thumb
-            });
-            foundArticles = true;
-          }
-        });
-      }
-
-      // Hapus duplikat berdasarkan URL
-      const uniqueArticles = articles.filter((article, index, self) =>
-        index === self.findIndex(a => a.url === article.url)
-      );
-
-      if (!uniqueArticles.length) {
-        return res.status(500).json({
-          status: false,
-          creator: "ZenzzXD",
-          message: 'Gagal mengambil data: Struktur HTML mungkin berubah atau tidak ada artikel ditemukan.'
-        });
-      }
+        if (title && url) {
+          articles.push({
+            title,
+            url,
+            thumbnail: thumb,
+            published: pubDate,
+            description: descHtml.text().substring(0, 150) + '...'
+          });
+        }
+      });
 
       res.json({
         status: true,
         creator: "ZenzzXD",
-        count: uniqueArticles.length,
-        result: uniqueArticles.slice(0, 20) // Batasi maksimal 20 artikel
+        count: articles.length,
+        result: articles
       });
 
     } catch (error) {
