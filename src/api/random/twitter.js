@@ -5,7 +5,6 @@ module.exports = function (app) {
   app.get('/downloader/twitter', async (req, res) => {
     const { url } = req.query;
     
-    // Validasi URL Twitter/X
     if (!url || !/^https?:\/\/(twitter\.com|x\.com)\/.+/.test(url)) {
       return res.status(400).json({
         status: false,
@@ -15,153 +14,117 @@ module.exports = function (app) {
     }
 
     try {
-      // Method 1: Coba POST langsung ke endpoint yang umum dipakai
-      const endpoints = [
-        'https://snaptwitter.io/download',
-        'https://snaptwitter.io/api/download',
-        'https://snaptwitter.io/process',
-        'https://snaptwitter.io/submit'
-      ];
+      // Berdasarkan hasil sniffing
+      const response = await axios.post('https://snaptwitter.io/action.php', 
+        new URLSearchParams({
+          url: url,
+          lang: 'id'
+        }), {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+          'X-Requested-With': 'XMLHttpRequest',
+          'Referer': 'https://snaptwitter.io/id',
+          'Origin': 'https://snaptwitter.io',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7'
+        }
+      });
 
-      let success = false;
-      let finalResult = null;
+      const $ = cheerio.load(response.data);
+      
+      // Extract berdasarkan struktur asli snaptwitter
+      const results = {
+        videos: [],
+        photos: [],
+        gifs: []
+      };
 
-      for (const endpoint of endpoints) {
-        try {
-          console.log(`Trying endpoint: ${endpoint}`);
+      // Cari di container download
+      $('.download-items .download-item').each((_, el) => {
+        const quality = $(el).find('.download-item__label').text().trim();
+        const type = $(el).find('.download-item__type').text().trim();
+        const size = $(el).find('.download-item__size').text().trim();
+        const link = $(el).find('a').attr('href');
+        
+        if (link && quality) {
+          const mediaItem = {
+            quality: quality || 'Unknown',
+            type: type || 'media',
+            size: size || '',
+            url: link.startsWith('http') ? link : `https://snaptwitter.io${link}`
+          };
+
+          if (type.toLowerCase().includes('video') || link.includes('.mp4')) {
+            results.videos.push(mediaItem);
+          } else if (type.toLowerCase().includes('photo') || type.toLowerCase().includes('image') || link.includes('.jpg') || link.includes('.png')) {
+            results.photos.push(mediaItem);
+          } else if (type.toLowerCase().includes('gif') || link.includes('.gif')) {
+            results.gifs.push(mediaItem);
+          } else {
+            // Default ke video kalau tidak bisa deteksi
+            results.videos.push(mediaItem);
+          }
+        }
+      });
+
+      // Fallback: cari link download lain
+      if (results.videos.length === 0 && results.photos.length === 0) {
+        $('a[href*="download"], a[download]').each((_, el) => {
+          const link = $(el).attr('href');
+          const text = $(el).text().trim();
           
-          const formData = new URLSearchParams({
-            url: url,
-            lang: 'id'
-          });
-
-          const response = await axios.post(endpoint, formData, {
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-              'Content-Type': 'application/x-www-form-urlencoded',
-              'Referer': 'https://snaptwitter.io/id',
-              'Origin': 'https://snaptwitter.io',
-              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-            },
-            timeout: 15000
-          });
-
-          if (response.status === 200) {
-            const $$ = cheerio.load(response.data);
+          if (link && (link.includes('http') || link.includes('download'))) {
+            const fullUrl = link.startsWith('http') ? link : `https://snaptwitter.io${link}`;
             
-            // Extract hasil download
-            const results = {
-              videos: [],
-              photos: [],
-              gifs: []
-            };
-            
-            // Coba berbagai selector
-            const selectors = [
-              'a[href*=".mp4"]',
-              'a[href*=".jpg"]',
-              'a[href*=".png"]',
-              'a[href*=".gif"]',
-              'a[download]',
-              '.download-link',
-              '.result a',
-              '#result a'
-            ];
-
-            selectors.forEach(selector => {
-              $$(selector).each((_, el) => {
-                const link = $$(el).attr('href');
-                const text = $$(el).text().trim();
-                
-                if (link && (link.includes('http') || link.includes('.'))) {
-                  const fullUrl = link.startsWith('http') ? link : `https://snaptwitter.io${link}`;
-                  
-                  if (link.includes('.mp4') || text.toLowerCase().includes('video')) {
-                    results.videos.push({ quality: text || 'Video', url: fullUrl, type: 'video' });
-                  } else if (link.includes('.jpg') || link.includes('.png') || text.toLowerCase().includes('photo')) {
-                    results.photos.push({ quality: text || 'Photo', url: fullUrl, type: 'photo' });
-                  } else if (link.includes('.gif') || text.toLowerCase().includes('gif')) {
-                    results.gifs.push({ quality: text || 'GIF', url: fullUrl, type: 'gif' });
-                  }
-                }
+            if (link.includes('.mp4') || text.toLowerCase().includes('video')) {
+              results.videos.push({
+                quality: text || 'Video',
+                type: 'video',
+                size: '',
+                url: fullUrl
               });
-            });
-
-            const totalMedia = results.videos.length + results.photos.length + results.gifs.length;
-            
-            if (totalMedia > 0) {
-              finalResult = {
-                tweet: {
-                  title: $$('h1, .title').first().text().trim() || '',
-                  author: $$('.author, .username').first().text().trim() || '',
-                  thumbnail: $$('img').first().attr('src') || ''
-                },
-                media: {
-                  total: totalMedia,
-                  videos: results.videos,
-                  photos: results.photos,
-                  gifs: results.gifs
-                }
-              };
-              success = true;
-              break;
+            } else if (link.includes('.jpg') || link.includes('.png') || text.toLowerCase().includes('photo')) {
+              results.photos.push({
+                quality: text || 'Photo',
+                type: 'photo',
+                size: '',
+                url: fullUrl
+              });
             }
           }
-        } catch (endpointError) {
-          console.log(`Endpoint ${endpoint} failed:`, endpointError.message);
-          continue;
-        }
+        });
       }
 
-      if (success && finalResult) {
-        return res.json({
-          status: true,
+      // Extract info tweet
+      const tweetInfo = {
+        title: $('.download-title').text().trim() || $('h1').text().trim() || '',
+        author: $('.download-author').text().trim() || '',
+        thumbnail: $('.download-cover img').attr('src') || $('img').first().attr('src') || ''
+      };
+
+      const totalMedia = results.videos.length + results.photos.length + results.gifs.length;
+
+      if (totalMedia === 0) {
+        return res.status(500).json({
+          status: false,
           creator: "ZenzzXD",
-          result: finalResult
+          message: 'Tidak ditemukan media. Tweet mungkin private, tidak ada media, atau hanya berisi teks.'
         });
       }
 
-      // Method 2: Kalau semua endpoint gagal, coba scraping dengan GET + form detection
-      try {
-        const { data: html } = await axios.get('https://snaptwitter.io/id', {
-          headers: { 
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-          }
-        });
-        
-        const $ = cheerio.load(html);
-        const form = $('form').first();
-        const action = form.attr('action');
-        const method = form.attr('method') || 'POST';
-        
-        if (action) {
-          const fullAction = action.startsWith('http') ? action : `https://snaptwitter.io${action}`;
-          console.log(`Found form action: ${fullAction}, method: ${method}`);
-          
-          // Coba dengan method yang ditemukan
-          const formData = new URLSearchParams({ url: url, lang: 'id' });
-          
-          const response = method.toUpperCase() === 'GET' 
-            ? await axios.get(`${fullAction}?${formData}`)
-            : await axios.post(fullAction, formData, {
-                headers: {
-                  'Content-Type': 'application/x-www-form-urlencoded',
-                  'Referer': 'https://snaptwitter.io/id'
-                }
-              });
-              
-          // Parse response...
-          // (sama seperti di atas)
-        }
-      } catch (fallbackError) {
-        console.log('Fallback method failed:', fallbackError.message);
-      }
-
-      // Kalau semua gagal
-      return res.status(500).json({
-        status: false,
+      res.json({
+        status: true,
         creator: "ZenzzXD",
-        message: 'Tidak ditemukan media atau snaptwitter.io sedang bermasalah. Coba lagi nanti atau gunakan tweet dengan media yang jelas.'
+        result: {
+          tweet: tweetInfo,
+          media: {
+            total: totalMedia,
+            videos: results.videos,
+            photos: results.photos,
+            gifs: results.gifs
+          }
+        }
       });
 
     } catch (err) {
