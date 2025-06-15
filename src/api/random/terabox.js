@@ -18,10 +18,13 @@ module.exports = function (app) {
     };
 
     try {
-      const fileRes = await axios.post('https://teradl-api.dapuntaratya.com/generate_file', {
-        url,
-        mode: 3
-      }, { headers });
+      // Menggunakan Promise.all untuk mengurangi waktu tunggu
+      const [fileRes] = await Promise.all([
+        axios.post('https://teradl-api.dapuntaratya.com/generate_file', {
+          url,
+          mode: 3
+        }, { headers })
+      ]);
 
       const fileData = fileRes.data;
       if (fileData.status !== 'success') {
