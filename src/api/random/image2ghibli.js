@@ -16,7 +16,7 @@ module.exports = function (app) {
     try {
       const response = await axios.get(url, {
         responseType: 'arraybuffer', // Menggunakan arraybuffer untuk menghindari timeout
-        timeout: 10000 // Set timeout 10 detik
+        timeout: 20000 // Set timeout 20 detik
       });
 
       res.setHeader('Content-Type', response.headers['content-type'] || 'image/webp');
@@ -27,11 +27,11 @@ module.exports = function (app) {
       res.send(Buffer.from(response.data));
     } catch (err) {
       console.error('[image2ghibli] Error:', err.message);
-      return res.status(502).json({
+      return res.status(err.response?.status || 502).json({
         status: false,
         creator: 'ZenzzXD',
-        message: 'error',
-        error: err.message
+        message: 'Gagal mengambil data dari sumber',
+        error: err.response?.data || err.message
       });
     }
   });
