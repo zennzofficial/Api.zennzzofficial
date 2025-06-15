@@ -2,60 +2,48 @@ const axios = require('axios');
 
 module.exports = function (app) {
   app.get('/tools/ocr', async (req, res) => {
-    const { imageUrl } = req.query;
+    const imageUrl = req.query.url;
 
     if (!imageUrl) {
       return res.status(400).json({
         status: false,
-        creator: "ZenzzXD",
-        message: "Parameter 'imageUrl' wajib diisi"
+        message: 'Parameter "url" tidak ditemukan',
+        creator: 'ZenzzXD'
       });
     }
 
-    try {
-      // Menggunakan OCR.space dengan timeout yang lebih pendek
-      const response = await axios.get(
-        `https://api.ocr.space/parse/imageurl?apikey=helloworld&url=${encodeURIComponent(imageUrl)}&scale=true`,
-        { timeout: 5000 } // Timeout 5 detik
-      );
+    const apiKey = 'helloworld'; // Ganti dengan API key asli kalau punya
+    const apiUrl = `https://api.ocr.space/parse/imageurl?apikey=${apiKey}&url=${encodeURIComponent(imageUrl)}`;
 
-      if (response.data?.ParsedResults?.[0]?.ParsedText) {
+    try {
+      const response = await axios.get(apiUrl, { timeout: 30000 });
+      const parsed = response.data?.ParsedResults?.[0];
+
+      if (parsed?.ParsedText) {
         return res.json({
           status: true,
-          creator: "ZenzzXD",
+          creator: 'ZenzzXD',
           result: {
-            text: response.data.ParsedResults[0].ParsedText.trim(),
-            confidence: 'High',
-            imageUrl: imageUrl,
-            processTime: response.data.ProcessingTimeInMilliseconds || 'Fast'
+            text: parsed.ParsedText.trim(),
+            confidence: parsed.TextOverlay?.Message || 'Unknown',
+            language: response.data.FileParseExitCode === 1 ? 'Detected' : 'Unknown'
           }
-        });
-      }
-
-      return res.status(404).json({
-        status: false,
-        creator: "ZenzzXD",
-        message: 'Tidak ada teks yang terdeteksi dalam gambar'
-      });
-
-    } catch (error) {
-      console.error('OCR Error:', error.message);
-
-      // Menangani timeout dan kesalahan lainnya
-      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-        return res.status(500).json({
-          status: false,
-          creator: "ZenzzXD",
-          message: 'Gagal melakukan OCR. Permintaan timeout.',
-          error: 'Request timeout'
         });
       }
 
       return res.status(500).json({
         status: false,
-        creator: "ZenzzXD",
-        message: 'Gagal melakukan OCR. Gambar mungkin tidak mengandung teks atau server OCR sedang lambat.',
-        error: error.message
+        creator: 'ZenzzXD',
+        message: response.data?.ErrorMessage || 'Gagal memproses gambar',
+        details: process.env.NODE_ENV === 'development' ? response.data : undefined
+      });
+
+    } catch (error) {
+      console.error('OCR Error:', error.message);
+      return res.status(error.response?.status || 500).json({
+        status: false,
+        creator: 'ZenzzXD',
+        message: error.response?.data?.ErrorMessage || error.message
       });
     }
   });
