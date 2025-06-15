@@ -342,7 +342,17 @@
             "text": "Teks yang akan ditampilkan di gambar"
           },
           "response_note": "Mengembalikan gambar PNG secara langsung."
-        }
+        }, 
+        {
+  "name": "Brat Vid",
+  "desc": "Membuat brat vid anomani.",
+  "path": "/maker/bratvid?text=",
+  "status": "ready",
+  "params": {
+    "text": "Teks yang akan ditampilkan di dalam video"
+  },
+  "response_note": "Mengembalikan video (MP4/WebM) atau gambar (PNG) secara langsung tanpa JSON wrapper."
+}
       ]
     },
     {
